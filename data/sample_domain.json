@@ -1,0 +1,16 @@
+{
+  "relationships": [
+    {
+      "from": "intern",
+      "to": "HelpDesk"
+    },
+    {
+      "from": "HelpDesk",
+      "to": "ServerAdmins"
+    },
+    {
+      "from": "ServerAdmins",
+      "to": "DomainAdmins"
+    }
+  ]
+}
