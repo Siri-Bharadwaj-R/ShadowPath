@@ -22,7 +22,4 @@ def calculate_risk(path):
     else:
         severity = "Low"
 
-    return {
-        "score": score,
-        "severity": severity
-    }
+    return score, severity

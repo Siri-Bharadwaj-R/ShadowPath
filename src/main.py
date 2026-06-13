@@ -3,6 +3,7 @@ from core.graph_builder import build_graph
 
 from analysis.attack_paths import find_attack_paths
 from analysis.risk_engine import calculate_risk
+from analysis.findings import Finding
 
 
 def main():
@@ -27,17 +28,29 @@ def main():
 
     attack_paths = find_attack_paths(graph)
 
-    print("\nAttack Paths:")
+    findings = []
 
     for path in attack_paths:
 
-        risk = calculate_risk(path)
+        score, severity = calculate_risk(path)
+
+        finding = Finding(
+            path=path,
+            score=score,
+            severity=severity
+        )
+
+        findings.append(finding)
+
+    print("\nAttack Findings:")
+
+    for finding in findings:
 
         print("\nPath:")
-        print(" -> ".join(path))
+        print(" -> ".join(finding.path))
 
-        print(f"Risk Score: {risk['score']}")
-        print(f"Severity : {risk['severity']}")
+        print(f"Risk Score: {finding.score}")
+        print(f"Severity : {finding.severity}")
 
 
 if __name__ == "__main__":
