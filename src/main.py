@@ -1,6 +1,8 @@
-from core.graph_builder import build_graph
 from core.parser import load_relationships
+from core.graph_builder import build_graph
+
 from analysis.attack_paths import find_attack_paths
+from analysis.risk_engine import calculate_risk
 
 
 def main():
@@ -28,7 +30,14 @@ def main():
     print("\nAttack Paths:")
 
     for path in attack_paths:
+
+        risk = calculate_risk(path)
+
+        print("\nPath:")
         print(" -> ".join(path))
+
+        print(f"Risk Score: {risk['score']}")
+        print(f"Severity : {risk['severity']}")
 
 
 if __name__ == "__main__":
