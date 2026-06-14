@@ -5,6 +5,8 @@ from analysis.attack_paths import find_attack_paths
 from analysis.risk_engine import calculate_risk
 from analysis.findings import Finding
 
+from visualization.graph_visualizer import visualize_graph
+
 
 def main():
     relationships = load_relationships(
@@ -51,6 +53,8 @@ def main():
 
         print(f"Risk Score: {finding.score}")
         print(f"Severity : {finding.severity}")
+
+    visualize_graph(graph)
 
 
 if __name__ == "__main__":
