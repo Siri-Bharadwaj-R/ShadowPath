@@ -5,6 +5,7 @@ from analysis.attack_paths import find_attack_paths
 from analysis.risk_engine import calculate_risk
 from analysis.findings import Finding
 from analysis.security_summary import generate_security_summary
+from analysis.mitre_mapper import map_mitre_techniques
 
 from visualization.graph_visualizer import visualize_graph
 
@@ -66,6 +67,16 @@ def main():
 
         print(f"Risk Score: {finding.score}")
         print(f"Severity : {finding.severity}")
+        techniques = map_mitre_techniques(
+            finding.path
+        )
+
+        print("\nMITRE ATT&CK Techniques:")
+
+        for technique_id, technique_name in techniques:
+            print(
+                f"{technique_id} - {technique_name}"
+            )
 
     visualize_graph(graph)
 
