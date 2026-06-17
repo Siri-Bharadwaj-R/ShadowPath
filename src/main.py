@@ -4,6 +4,7 @@ from core.graph_builder import build_graph
 from analysis.attack_paths import find_attack_paths
 from analysis.risk_engine import calculate_risk
 from analysis.findings import Finding
+from analysis.security_summary import generate_security_summary
 
 from visualization.graph_visualizer import visualize_graph
 
@@ -43,6 +44,18 @@ def main():
         )
 
         findings.append(finding)
+
+    summary = generate_security_summary(findings)
+
+    print("\nSecurity Assessment Summary")
+    print("-" * 30)
+
+    print(f"Overall Security Score : {summary['overall_score']}/100")
+
+    print(f"Critical Findings      : {summary['critical']}")
+    print(f"High Findings          : {summary['high']}")
+    print(f"Medium Findings        : {summary['medium']}")
+    print(f"Low Findings           : {summary['low']}")
 
     print("\nAttack Findings:")
 
