@@ -6,6 +6,7 @@ from analysis.risk_engine import calculate_risk
 from analysis.findings import Finding
 from analysis.security_summary import generate_security_summary
 from analysis.mitre_mapper import map_mitre_techniques
+from analysis.report_generator import generate_report
 
 from visualization.graph_visualizer import visualize_graph
 
@@ -78,6 +79,10 @@ def main():
                 f"{technique_id} - {technique_name}"
             )
 
+    generate_report(
+        findings,
+        summary
+    )
     visualize_graph(graph)
 
 
