@@ -1,3 +1,20 @@
+from datetime import datetime
+
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    Image,
+    PageBreak
+)
+
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+
+
 def generate_security_summary(findings):
     """
     Generate overall security statistics.
@@ -38,3 +55,4 @@ def generate_security_summary(findings):
         "low": low,
         "overall_score": overall_score
     }
+
