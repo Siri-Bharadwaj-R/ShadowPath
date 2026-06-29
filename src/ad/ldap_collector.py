@@ -54,3 +54,19 @@ class LDAPCollector:
         )
 
         return self.connection.entries
+
+    def get_groups(self):
+        if self.connection is None:
+            raise RuntimeError("Not connected to Active Directory.")
+
+        self.connection.search(
+            search_base=self.base_dn,
+            search_filter="(objectClass=group)",
+            search_scope=SUBTREE,
+            attributes=[
+                "cn",
+                "sAMAccountName"
+            ]
+        )
+
+        return self.connection.entries

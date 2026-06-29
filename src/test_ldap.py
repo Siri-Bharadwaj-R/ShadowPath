@@ -11,14 +11,19 @@ def main():
 
     collector.connect()
 
-    users = collector.get_users()
-
     print("\nUsers Found:\n")
 
+    users = collector.get_users()
+
     for user in users:
-        print(
-            f"{user.sAMAccountName} ({user.cn})"
-        )
+        print(f"{user.sAMAccountName} ({user.cn})")
+
+    print("\nGroups Found:\n")
+
+    groups = collector.get_groups()
+
+    for group in groups:
+        print(f"{group.sAMAccountName} ({group.cn})")
 
 
 if __name__ == "__main__":
