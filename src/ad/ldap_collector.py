@@ -1,4 +1,4 @@
-from ldap3 import ALL, Connection, Server
+from ldap3 import ALL, Connection, Server, SUBTREE
 from ldap3.core.exceptions import LDAPException
 
 
@@ -17,10 +17,6 @@ class LDAPCollector:
         self.connection: Connection | None = None
 
     def connect(self) -> Connection:
-        """
-        Establish an authenticated LDAP connection to Active Directory.
-        """
-
         try:
             server = Server(
                 self.server_ip,
@@ -42,3 +38,19 @@ class LDAPCollector:
             raise RuntimeError(
                 f"Failed to connect to Active Directory: {error}"
             ) from error
+
+    def get_users(self):
+        if self.connection is None:
+            raise RuntimeError("Not connected to Active Directory.")
+
+        self.connection.search(
+            search_base=self.base_dn,
+            search_filter="(&(objectClass=user)(objectCategory=person))",
+            search_scope=SUBTREE,
+            attributes=[
+                "cn",
+                "sAMAccountName"
+            ]
+        )
+
+        return self.connection.entries
