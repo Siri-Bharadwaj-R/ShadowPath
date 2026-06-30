@@ -1,4 +1,5 @@
-from core.parser import load_relationships
+from ad.ldap_collector import LDAPCollector
+from ad.relationship_builder import RelationshipBuilder
 from core.graph_builder import build_graph
 
 from analysis.attack_paths import find_attack_paths
@@ -12,9 +13,18 @@ from visualization.graph_visualizer import visualize_graph
 
 
 def main():
-    relationships = load_relationships(
-        "../data/sample_domain.json"
+    collector = LDAPCollector(
+        server_ip="192.168.56.10",
+        username="SHADOWPATH\\Administrator",
+        password="Password123!",
+        base_dn="DC=shadowpath,DC=local"
     )
+
+    collector.connect()
+
+    builder = RelationshipBuilder(collector)
+
+    relationships = builder.build()
 
     print("Loaded Relationships:\n")
 
