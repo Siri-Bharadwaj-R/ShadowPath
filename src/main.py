@@ -1,12 +1,13 @@
 from ui.banner import show_banner
-
-show_banner()
+from ui.runner import pipeline
 
 from ad.ldap_collector import LDAPCollector
 from ad.relationship_builder import RelationshipBuilder
+
 from core.graph_builder import build_graph
 
 from analysis.attack_paths import find_attack_paths
+from analysis.path_prioritizer import prioritize_attack_paths
 from analysis.risk_engine import calculate_risk
 from analysis.findings import Finding
 from analysis.security_summary import generate_security_summary
@@ -17,6 +18,9 @@ from visualization.graph_visualizer import visualize_graph
 
 
 def main():
+
+    show_banner()
+
     collector = LDAPCollector(
         server_ip="192.168.56.10",
         username="SHADOWPATH\\Administrator",
@@ -24,11 +28,17 @@ def main():
         base_dn="DC=shadowpath,DC=local"
     )
 
-    collector.connect()
+    pipeline.run_stage(
+        "Connecting to Active Directory",
+        collector.connect
+    )
 
     builder = RelationshipBuilder(collector)
 
-    relationships = builder.build()
+    relationships = pipeline.run_stage(
+        "Building Relationships",
+        builder.build
+    )
 
     print("Loaded Relationships:\n")
 
@@ -37,7 +47,11 @@ def main():
             f"{relationship.source} -> {relationship.target}"
         )
 
-    graph = build_graph(relationships)
+    graph = pipeline.run_stage(
+        "Building Attack Graph",
+        build_graph,
+        relationships
+    )
 
     print("\nNodes:")
     print(list(graph.nodes()))
@@ -45,8 +59,12 @@ def main():
     print("\nEdges:")
     print(list(graph.edges()))
 
-    attack_paths = find_attack_paths(graph)
-    from analysis.path_prioritizer import prioritize_attack_paths
+    attack_paths = pipeline.run_stage(
+        "Discovering Attack Paths",
+        find_attack_paths,
+        graph
+    )
+
     attack_paths = prioritize_attack_paths(
         attack_paths
     )
@@ -71,7 +89,6 @@ def main():
     print("-" * 30)
 
     print(f"Overall Security Score : {summary['overall_score']}/100")
-
     print(f"Critical Findings      : {summary['critical']}")
     print(f"High Findings          : {summary['high']}")
     print(f"Medium Findings        : {summary['medium']}")
@@ -86,6 +103,7 @@ def main():
 
         print(f"Risk Score: {finding.score}")
         print(f"Severity : {finding.severity}")
+
         techniques = map_mitre_techniques(
             finding.path
         )
@@ -93,15 +111,20 @@ def main():
         print("\nMITRE ATT&CK Techniques:")
 
         for technique_id, technique_name in techniques:
-            print(
-                f"{technique_id} - {technique_name}"
-            )
+            print(f"{technique_id} - {technique_name}")
 
-    generate_report(
+    pipeline.run_stage(
+        "Generating Professional Report",
+        generate_report,
         findings,
         summary
     )
-    visualize_graph(graph)
+
+    pipeline.run_stage(
+        "Rendering Attack Graph",
+        visualize_graph,
+        graph
+    )
 
 
 if __name__ == "__main__":
