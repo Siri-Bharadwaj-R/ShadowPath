@@ -1,3 +1,7 @@
+from ui.banner import show_banner
+
+show_banner()
+
 from ad.ldap_collector import LDAPCollector
 from ad.relationship_builder import RelationshipBuilder
 from core.graph_builder import build_graph
