@@ -41,10 +41,10 @@ def generate_security_summary(findings):
 
     overall_score = 100
 
-    overall_score -= critical * 20
-    overall_score -= high * 10
-    overall_score -= medium * 5
-    overall_score -= low * 2
+    overall_score -= critical * 10
+    overall_score -= high * 6
+    overall_score -= medium * 3
+    overall_score -= low * 1
 
     overall_score = max(overall_score, 0)
 
