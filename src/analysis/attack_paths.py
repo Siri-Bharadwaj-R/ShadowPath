@@ -1,19 +1,26 @@
 import networkx as nx
 
-
-PRIVILEGED_TARGETS = {
-    "DomainAdmins"
-}
+from analysis.high_value_targets import HIGH_VALUE_TARGETS
+from analysis.entry_points import LOW_PRIVILEGE_IDENTITIES
 
 
 def find_attack_paths(graph: nx.DiGraph):
     attack_paths = []
 
-    for source in graph.nodes():
+    for source in LOW_PRIVILEGE_IDENTITIES:
 
-        for target in PRIVILEGED_TARGETS:
+        if source not in graph:
+            continue
 
-            if target not in graph.nodes():
+        for target in HIGH_VALUE_TARGETS:
+
+            if source == target:
+                continue
+
+            if target not in graph:
+                continue
+
+            if not nx.has_path(graph, source, target):
                 continue
 
             paths = nx.all_simple_paths(
