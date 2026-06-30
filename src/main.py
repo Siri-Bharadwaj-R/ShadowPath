@@ -42,6 +42,10 @@ def main():
     print(list(graph.edges()))
 
     attack_paths = find_attack_paths(graph)
+    from analysis.path_prioritizer import prioritize_attack_paths
+    attack_paths = prioritize_attack_paths(
+        attack_paths
+    )
 
     findings = []
 
