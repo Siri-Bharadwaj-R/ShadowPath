@@ -25,6 +25,17 @@ def main():
     for group in groups:
         print(f"{group.sAMAccountName} ({group.cn})")
 
+    print("\nGroup Memberships:\n")
+
+    memberships = collector.get_group_memberships()
+
+    for membership in memberships:
+        print(
+            f"{membership['member']} -> "
+            f"{membership['group']} "
+            f"({membership['type']})"
+        )
+
 
 if __name__ == "__main__":
     main()
