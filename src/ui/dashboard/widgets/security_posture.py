@@ -14,7 +14,51 @@ def build_security_posture(data):
         summary["overall_score"],
     ).render()
 
-    metrics = Columns(
+    total_findings = (
+        summary["critical"]
+        + summary["high"]
+        + summary["medium"]
+        + summary["low"]
+    )
+
+    # Determine overall posture
+    if summary["critical"] > 0:
+        posture = "CRITICAL"
+        posture_color = "bright_red"
+
+    elif summary["high"] > 0:
+        posture = "HIGH"
+        posture_color = "yellow"
+
+    elif summary["medium"] > 0:
+        posture = "MODERATE"
+        posture_color = "cyan"
+
+    else:
+        posture = "LOW"
+        posture_color = "green"
+
+    top_metrics = Columns(
+        [
+
+            MetricCard(
+                "Overall Risk",
+                posture,
+                color=posture_color,
+            ).render(),
+
+            MetricCard(
+                "Total Findings",
+                str(total_findings),
+                color="bright_white",
+            ).render(),
+
+        ],
+        equal=True,
+        expand=True,
+    )
+
+    severity_metrics = Columns(
         [
 
             MetricCard(
@@ -50,6 +94,8 @@ def build_security_posture(data):
 
         score,
 
-        metrics
+        top_metrics,
+
+        severity_metrics,
 
     )

@@ -26,11 +26,25 @@ def render_dashboard(data):
         )
     )
 
+    console.print(
+        Text(
+            "Read-Only Active Directory Security Assessment",
+            style="bright_black",
+            justify="center",
+        )
+    )
+
     console.print()
 
     # ==========================================================
     # Environment Overview
     # ==========================================================
+
+    console.rule(
+        "[bold white]ENVIRONMENT OVERVIEW[/bold white]"
+    )
+
+    console.print()
 
     console.print(
         build_overview(data)
@@ -41,6 +55,12 @@ def render_dashboard(data):
     # ==========================================================
     # Security Posture
     # ==========================================================
+
+    console.rule(
+        "[bold white]SECURITY POSTURE[/bold white]"
+    )
+
+    console.print()
 
     console.print(
         build_security_posture(data)
@@ -68,6 +88,12 @@ def render_dashboard(data):
     # Executive Summary
     # ==========================================================
 
+    console.rule(
+        "[bold white]EXECUTIVE SUMMARY[/bold white]"
+    )
+
+    console.print()
+
     console.print(
         Columns(
             [
@@ -82,7 +108,15 @@ def render_dashboard(data):
     console.print()
 
     console.rule(
-        "[bold green]EXECUTIVE ASSESSMENT COMPLETE[/bold green]"
+        "[bold green]ASSESSMENT COMPLETED SUCCESSFULLY[/bold green]"
+    )
+
+    console.print(
+        Text(
+            "ShadowPath completed the Active Directory security assessment successfully.",
+            style="bright_black",
+            justify="center",
+        )
     )
 
     console.print()

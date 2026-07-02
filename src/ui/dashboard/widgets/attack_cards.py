@@ -1,5 +1,6 @@
 from rich.console import Group
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
 from ui.framework.palette import BORDER
@@ -12,45 +13,55 @@ class AttackCard:
 
     def render(self):
 
-        body = Text()
+        severity_colors = {
+            "Critical": "bright_red",
+            "High": "yellow",
+            "Medium": "cyan",
+            "Low": "green",
+        }
 
-        # Entry Identity
-        body.append("Entry Identity\n", style="bold white")
-        body.append(
-            f"{self.finding.path[0]}\n\n",
-            style="bold bright_cyan",
+        severity_color = severity_colors.get(
+            self.finding.severity,
+            "white"
         )
 
-        # Attack Chain
-        body.append("Attack Chain\n", style="bold white")
-        body.append(
-            "  →  ".join(self.finding.path),
-            style="white",
+        info = Table.grid(
+            expand=True
         )
 
-        body.append("\n\n")
+        info.add_column(ratio=1)
+        info.add_column(ratio=1)
 
-        # Target
-        body.append("Target Asset\n", style="bold white")
-        body.append(
-            f"{self.finding.path[-1]}\n\n",
-            style="bold bright_magenta",
+        info.add_row(
+            f"[bold]Severity[/bold]  [{severity_color}]{self.finding.severity.upper()}[/{severity_color}]",
+            f"[bold]Score[/bold]  [bright_green]{self.finding.score}[/bright_green]",
         )
 
-        # Risk
-        body.append("Risk Assessment\n", style="bold white")
-        body.append(
-            f"Severity : {self.finding.severity}\n",
-            style="bold bright_red",
+        info.add_row(
+            f"[bold]Entry[/bold]  [bright_cyan]{self.finding.path[0]}[/bright_cyan]",
+            f"[bold]Target[/bold]  [bright_magenta]{self.finding.path[-1]}[/bright_magenta]",
         )
-        body.append(
-            f"Risk Score : {self.finding.score}",
-            style="bold bright_green",
+
+        attack_path = Text()
+        attack_path.append(
+            "Attack Path\n",
+            style="bold white"
+        )
+
+        attack_path.append(
+            " → ".join(self.finding.path),
+            style="white"
+        )
+
+        body = Group(
+            info,
+            Text(),
+            attack_path,
         )
 
         return Panel(
             body,
-            title="[bold]Potential Privilege Escalation[/bold]",
+            title=f"[bold bright_cyan]{self.finding.id}[/bold bright_cyan]",
             border_style=BORDER,
             padding=(1, 2),
             expand=True,
@@ -59,10 +70,7 @@ class AttackCard:
 
 def build_attack_cards(data):
     """
-    Builds the Top Privilege Escalation Paths section.
-
-    Displays the three highest-priority findings and informs the
-    user if additional attack paths exist.
+    Builds the highest-priority attack findings.
     """
 
     findings = data.findings
@@ -81,9 +89,17 @@ def build_attack_cards(data):
     ]
 
     if len(findings) > 3:
+
+        remaining = len(findings) - 3
+
         cards.append(
             Panel(
-                f"[cyan]...and {len(findings) - 3} additional attack path(s).[/cyan]",
+                (
+                    f"[bold]{remaining} additional finding(s)[/bold]\n\n"
+                    "See the generated report for the complete list of "
+                    "prioritized attack paths."
+                ),
+                title="[bold]Additional Findings[/bold]",
                 border_style=BORDER,
                 expand=True,
             )

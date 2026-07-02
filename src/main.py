@@ -62,12 +62,13 @@ def main():
 
     findings = []
 
-    for path in attack_paths:
+    for index, path in enumerate(attack_paths, start=1):
 
         score, severity = calculate_risk(path)
 
         findings.append(
             Finding(
+                id=f"SP-{index:03}",
                 path=path,
                 score=score,
                 severity=severity
