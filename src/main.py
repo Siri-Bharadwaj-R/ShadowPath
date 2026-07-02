@@ -163,10 +163,8 @@ def main():
         graph_edges=graph.number_of_edges(),
         findings=findings,
         summary=summary,
+        graph_intelligence=graph_intelligence,
     )
-
-    # Store graph intelligence for future dashboard widgets
-    dashboard_data.graph_intelligence = graph_intelligence
 
     render_dashboard(
         dashboard_data

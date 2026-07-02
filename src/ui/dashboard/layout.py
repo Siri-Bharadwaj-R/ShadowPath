@@ -5,6 +5,7 @@ from ui.console import console
 
 from ui.dashboard.widgets.overview import build_overview
 from ui.dashboard.widgets.security_posture import build_security_posture
+from ui.dashboard.widgets.attack_intelligence import build_attack_intelligence
 from ui.dashboard.widgets.attack_cards import build_attack_cards
 from ui.dashboard.widgets.recommendations import build_recommendations
 from ui.dashboard.widgets.assessment import build_assessment
@@ -64,6 +65,22 @@ def render_dashboard(data):
 
     console.print(
         build_security_posture(data)
+    )
+
+    console.print()
+
+    # ==========================================================
+    # Attack Intelligence
+    # ==========================================================
+
+    console.rule(
+        "[bold bright_magenta]ATTACK INTELLIGENCE[/bold bright_magenta]"
+    )
+
+    console.print()
+
+    console.print(
+        build_attack_intelligence(data)
     )
 
     console.print()

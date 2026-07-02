@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class DashboardData:
+
     domain: str
 
     users: int
@@ -15,5 +16,8 @@ class DashboardData:
     findings: list
 
     summary: dict
+
+    # NEW
+    graph_intelligence: dict = field(default_factory=dict)
 
     report_path: str = "reports/shadowpath_report.pdf"
