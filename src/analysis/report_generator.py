@@ -289,8 +289,75 @@ def generate_report(findings, summary):
             ])
         )
 
-        content.append(finding_table)
-        content.append(Spacer(1, 15))
+    content.append(finding_table)
+
+    content.append(Spacer(1, 8))
+
+    content.append(
+        Paragraph(
+            "<b>Attack Simulation</b>",
+            styles["Heading3"]
+        )
+    )
+
+    simulation_data = [
+        [f"{step_number}.", step]
+        for step_number, step in enumerate(
+            finding.simulation,
+            start=1
+        )
+    ]
+
+    simulation_table = Table(
+        simulation_data,
+        colWidths=[30, 430]
+    )
+
+    simulation_table.setStyle(
+        TableStyle([
+
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                0.25,
+                colors.lightgrey
+            ),
+
+            (
+                "BACKGROUND",
+                (0, 0),
+                (0, -1),
+                colors.whitesmoke
+            ),
+
+            (
+                "FONTNAME",
+                (0, 0),
+                (0, -1),
+                "Helvetica-Bold"
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                6
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                6
+            )
+
+        ])
+    )
+
+    content.append(simulation_table)
+
+    content.append(Spacer(1, 18))
 
     # ==================================================
     # MITRE ATT&CK

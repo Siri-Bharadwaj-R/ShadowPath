@@ -25,39 +25,53 @@ class AttackCard:
             "white"
         )
 
-        info = Table.grid(
-            expand=True
-        )
+        info = Table.grid(expand=True)
 
         info.add_column(ratio=1)
         info.add_column(ratio=1)
 
         info.add_row(
             f"[bold]Severity[/bold]  [{severity_color}]{self.finding.severity.upper()}[/{severity_color}]",
-            f"[bold]Score[/bold]  [bright_green]{self.finding.score}[/bright_green]",
+            f"[bold]Score[/bold]  [bright_green]{self.finding.score}[/bright_green]"
         )
 
         info.add_row(
             f"[bold]Entry[/bold]  [bright_cyan]{self.finding.path[0]}[/bright_cyan]",
-            f"[bold]Target[/bold]  [bright_magenta]{self.finding.path[-1]}[/bright_magenta]",
-        )
-
-        attack_path = Text()
-        attack_path.append(
-            "Attack Path\n",
-            style="bold white"
-        )
-
-        attack_path.append(
-            " → ".join(self.finding.path),
-            style="white"
+            f"[bold]Target[/bold]  [bright_magenta]{self.finding.path[-1]}[/bright_magenta]"
         )
 
         body = Group(
             info,
             Text(),
-            attack_path,
+
+            Text(
+                "Attack Path",
+                style="bold white"
+            ),
+
+            Text(
+                " → ".join(self.finding.path),
+                style="white"
+            ),
+
+            Text(),
+
+            Text(
+                "Attack Simulation",
+                style="bold bright_cyan"
+            )
         )
+
+        for index, step in enumerate(self.finding.simulation, start=1):
+
+            body.renderables.append(
+
+                Text(
+                    f"{index}. {step}",
+                    style="white"
+                )
+
+            )
 
         return Panel(
             body,
@@ -69,13 +83,11 @@ class AttackCard:
 
 
 def build_attack_cards(data):
-    """
-    Builds the highest-priority attack findings.
-    """
 
     findings = data.findings
 
     if not findings:
+
         return Panel(
             "[green]No privilege escalation paths were identified.[/green]",
             title="[bold]Top Privilege Escalation Paths[/bold]",
@@ -90,19 +102,23 @@ def build_attack_cards(data):
 
     if len(findings) > 3:
 
-        remaining = len(findings) - 3
-
         cards.append(
+
             Panel(
+
                 (
-                    f"[bold]{remaining} additional finding(s)[/bold]\n\n"
-                    "See the generated report for the complete list of "
-                    "prioritized attack paths."
+                    f"[bold]{len(findings)-3} additional finding(s)[/bold]\n\n"
+                    "See the generated report for the complete assessment."
                 ),
+
                 title="[bold]Additional Findings[/bold]",
+
                 border_style=BORDER,
+
                 expand=True,
+
             )
+
         )
 
     return Group(*cards)

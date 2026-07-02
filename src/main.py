@@ -12,6 +12,7 @@ from core.graph_builder import build_graph
 from analysis.attack_paths import find_attack_paths
 from analysis.path_prioritizer import prioritize_attack_paths
 from analysis.risk_engine import calculate_risk
+from analysis.attack_simulator import generate_attack_simulation
 from analysis.findings import Finding
 from analysis.report_generator import generate_report
 from analysis.security_summary import generate_security_summary
@@ -66,14 +67,16 @@ def main():
 
         score, severity = calculate_risk(path)
 
-        findings.append(
-            Finding(
-                id=f"SP-{index:03}",
-                path=path,
-                score=score,
-                severity=severity
-            )
+        finding = Finding(
+            id=f"SP-{index:03}",
+            path=path,
+            score=score,
+            severity=severity,
         )
+
+        finding.simulation = generate_attack_simulation(path)
+
+        findings.append(finding)
 
     summary = pipeline.run_stage(
         "Assessing Security Posture",
