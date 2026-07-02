@@ -17,7 +17,8 @@ class DashboardData:
 
     summary: dict
 
-    # NEW
     graph_intelligence: dict = field(default_factory=dict)
+
+    remediation_plan: list = field(default_factory=list)
 
     report_path: str = "reports/shadowpath_report.pdf"

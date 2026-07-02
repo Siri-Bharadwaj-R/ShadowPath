@@ -9,6 +9,7 @@ from ad.relationship_builder import RelationshipBuilder
 
 from core.graph_builder import build_graph
 
+from analysis.remediation_engine import generate_remediation_plan
 from analysis.attack_paths import find_attack_paths
 from analysis.path_prioritizer import prioritize_attack_paths
 from analysis.risk_engine import calculate_risk
@@ -67,6 +68,13 @@ def main():
         generate_graph_intelligence,
         graph,
         attack_paths
+    )
+
+    remediation_plan = pipeline.run_stage(
+        "Generating Remediation Plan",
+        generate_remediation_plan,
+        attack_paths,
+        graph_intelligence
     )
 
     findings = []
@@ -164,6 +172,7 @@ def main():
         findings=findings,
         summary=summary,
         graph_intelligence=graph_intelligence,
+        remediation_plan=remediation_plan,
     )
 
     render_dashboard(

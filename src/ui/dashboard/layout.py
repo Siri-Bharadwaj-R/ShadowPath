@@ -3,6 +3,7 @@ from rich.text import Text
 
 from ui.console import console
 
+from ui.dashboard.widgets.remediation import build_remediation
 from ui.dashboard.widgets.overview import build_overview
 from ui.dashboard.widgets.security_posture import build_security_posture
 from ui.dashboard.widgets.attack_intelligence import build_attack_intelligence
@@ -85,6 +86,21 @@ def render_dashboard(data):
 
     console.print()
 
+    # ==========================================================
+    # Remediation
+    # ==========================================================
+
+    console.rule(
+        "[bold bright_green]TOP REMEDIATION ACTIONS[/bold bright_green]"
+    )
+
+    console.print()
+
+    console.print(
+        build_remediation(data)
+    )
+
+    console.print()
     # ==========================================================
     # Attack Paths
     # ==========================================================
