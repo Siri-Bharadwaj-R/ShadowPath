@@ -1,6 +1,9 @@
 from ui.banner import show_banner
 from ui.runner import pipeline
 
+from ui.dashboard.layout import render_dashboard
+from ui.dashboard.dashboard_data import DashboardData
+
 from ad.ldap_collector import LDAPCollector
 from ad.relationship_builder import RelationshipBuilder
 
@@ -10,9 +13,8 @@ from analysis.attack_paths import find_attack_paths
 from analysis.path_prioritizer import prioritize_attack_paths
 from analysis.risk_engine import calculate_risk
 from analysis.findings import Finding
-from analysis.security_summary import generate_security_summary
-from analysis.mitre_mapper import map_mitre_techniques
 from analysis.report_generator import generate_report
+from analysis.security_summary import generate_security_summary
 
 from visualization.graph_visualizer import visualize_graph
 
@@ -40,24 +42,11 @@ def main():
         builder.build
     )
 
-    print("Loaded Relationships:\n")
-
-    for relationship in relationships:
-        print(
-            f"{relationship.source} -> {relationship.target}"
-        )
-
     graph = pipeline.run_stage(
         "Building Attack Graph",
         build_graph,
         relationships
     )
-
-    print("\nNodes:")
-    print(list(graph.nodes()))
-
-    print("\nEdges:")
-    print(list(graph.edges()))
 
     attack_paths = pipeline.run_stage(
         "Discovering Attack Paths",
@@ -65,7 +54,9 @@ def main():
         graph
     )
 
-    attack_paths = prioritize_attack_paths(
+    attack_paths = pipeline.run_stage(
+        "Prioritizing Attack Paths",
+        prioritize_attack_paths,
         attack_paths
     )
 
@@ -75,43 +66,34 @@ def main():
 
         score, severity = calculate_risk(path)
 
-        finding = Finding(
-            path=path,
-            score=score,
-            severity=severity
+        findings.append(
+            Finding(
+                path=path,
+                score=score,
+                severity=severity
+            )
         )
 
-        findings.append(finding)
+    summary = pipeline.run_stage(
+        "Assessing Security Posture",
+        generate_security_summary,
+        findings
+    )
 
-    summary = generate_security_summary(findings)
+    dashboard_data = DashboardData(
+        domain="shadowpath.local",
+        users=len(collector.get_users()),
+        groups=len(collector.get_groups()),
+        relationships=len(relationships),
+        graph_nodes=graph.number_of_nodes(),
+        graph_edges=graph.number_of_edges(),
+        findings=findings,
+        summary=summary,
+    )
 
-    print("\nSecurity Assessment Summary")
-    print("-" * 30)
-
-    print(f"Overall Security Score : {summary['overall_score']}/100")
-    print(f"Critical Findings      : {summary['critical']}")
-    print(f"High Findings          : {summary['high']}")
-    print(f"Medium Findings        : {summary['medium']}")
-    print(f"Low Findings           : {summary['low']}")
-
-    print("\nAttack Findings:")
-
-    for finding in findings:
-
-        print("\nPath:")
-        print(" -> ".join(finding.path))
-
-        print(f"Risk Score: {finding.score}")
-        print(f"Severity : {finding.severity}")
-
-        techniques = map_mitre_techniques(
-            finding.path
-        )
-
-        print("\nMITRE ATT&CK Techniques:")
-
-        for technique_id, technique_name in techniques:
-            print(f"{technique_id} - {technique_name}")
+    render_dashboard(
+        dashboard_data
+    )
 
     pipeline.run_stage(
         "Generating Professional Report",
