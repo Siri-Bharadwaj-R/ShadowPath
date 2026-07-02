@@ -23,7 +23,7 @@ class Finding:
     recommendation: str = ""
 
     # ============================
-    # Attack Intelligence Engine
+    # Attack Intelligence
     # ============================
 
     blast_radius: int = 0
@@ -37,3 +37,9 @@ class Finding:
     privilege_concentration: str = ""
 
     intelligence_summary: str = ""
+
+    # ============================
+    # MITRE ATT&CK
+    # ============================
+
+    mitre: list = field(default_factory=list)

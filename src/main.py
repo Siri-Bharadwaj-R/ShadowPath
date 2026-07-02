@@ -9,6 +9,7 @@ from ad.relationship_builder import RelationshipBuilder
 
 from core.graph_builder import build_graph
 
+from analysis.mitre_engine import generate_mitre_mapping
 from analysis.remediation_engine import generate_remediation_plan
 from analysis.attack_paths import find_attack_paths
 from analysis.path_prioritizer import prioritize_attack_paths
@@ -91,6 +92,7 @@ def main():
         )
 
         finding.simulation = generate_attack_simulation(path)
+        finding.mitre = generate_mitre_mapping(path)
 
         # ==========================================
         # Attack Intelligence

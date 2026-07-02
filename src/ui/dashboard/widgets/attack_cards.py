@@ -77,7 +77,26 @@ class AttackCard:
                 )
 
             )
+        body.renderables.append(Text())
 
+        body.renderables.append(
+
+            Text(
+                "MITRE ATT&CK",
+                style="bold bright_red"
+            )
+
+        )
+
+        for technique in self.finding.mitre:
+            body.renderables.append(
+
+                Text(
+                    f"{technique['id']}  {technique['description']}",
+                    style="white"
+                )
+
+            )
         # ====================================================
         # Attack Intelligence
         # ====================================================
