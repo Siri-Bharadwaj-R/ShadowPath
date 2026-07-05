@@ -6,6 +6,15 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 
+from reportlab.graphics.shapes import Drawing, Circle, String
+from reportlab.graphics.shapes import (
+    Drawing,
+    Circle,
+    String,
+    Wedge,
+)
+from reportlab.graphics import renderPDF
+
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
@@ -21,7 +30,6 @@ from reportlab.platypus import (
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-print("🔥🔥🔥 USING NEW REPORT_GENERATOR.PY 🔥🔥🔥")
 # ==========================================================
 # SHADOWPATH REPORT GENERATOR
 # ==========================================================
@@ -270,15 +278,53 @@ def small(text):
 
     return Paragraph(str(text), SMALL_STYLE)
 
+def metric_card(title, value, subtitle=""):
 
-def metric_card(title, value):
+    number = Paragraph(str(value), ParagraphStyle(
+        "MetricNumber",
+        parent=METRIC_STYLE,
+        fontName=FONT_BOLD,
+        fontSize=30,
+        alignment=TA_CENTER,
+        textColor=BLUE,
+        spaceAfter=8,
+    ))
+
+    heading = Paragraph(
+        f"<b>{title.upper()}</b>",
+        ParagraphStyle(
+            "MetricHeading",
+            parent=BODY_STYLE,
+            alignment=TA_CENTER,
+            fontName=FONT_BOLD,
+            fontSize=12,
+            textColor=WHITE,
+            spaceAfter=6,
+        )
+    )
+
+    subtitle_para = Paragraph(
+        subtitle,
+        ParagraphStyle(
+            "MetricSubtitle",
+            parent=SMALL_STYLE,
+            alignment=TA_CENTER,
+            textColor=LIGHT,
+        )
+    )
 
     tbl = Table(
         [
-            [Paragraph(str(value), METRIC_STYLE)],
-            [Paragraph(title, SMALL_STYLE)],
+            [heading],
+            [number],
+            [subtitle_para],
         ],
-        colWidths=[1.75 * inch],
+        colWidths=[1.6 * inch],
+        rowHeights=[
+            0.45 * inch,
+            0.75 * inch,
+            0.45 * inch,
+        ]
     )
 
     tbl.setStyle(
@@ -286,44 +332,243 @@ def metric_card(title, value):
 
             ("BACKGROUND", (0, 0), (-1, -1), CARD),
 
-            ("BOX", (0, 0), (-1, -1), 1, BLUE),
+            ("BOX", (0, 0), (-1, -1), 2.5, BLUE),
 
             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
 
-            ("TOPPADDING", (0, 0), (-1, -1), 14),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
 
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
+            ("TOPPADDING", (0, 0), (-1, -1), 18),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 18),
 
             ("LEFTPADDING", (0, 0), (-1, -1), 10),
 
             ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+
         ])
     )
 
     return tbl
 
+# ==========================================================
+# EXECUTIVE RISK GAUGE
+# ==========================================================
+
+from reportlab.graphics.shapes import (
+    Drawing,
+    Circle,
+    Wedge,
+    String,
+)
+
+
+def risk_gauge(score, posture):
+
+    score = max(0, min(score, 100))
+
+    drawing = Drawing(205, 205)
+
+    if score >= 75:
+        colour = GREEN
+    elif score >= 50:
+        colour = BLUE
+    elif score >= 25:
+        colour = ORANGE
+    else:
+        colour = RED
+
+    # Background Ring
+
+    drawing.add(
+        Circle(
+            102,
+            102,
+            70,
+            strokeColor=GREY,
+            strokeWidth=12,
+            fillColor=None,
+        )
+    )
+
+    # Progress Arc
+
+    angle = (score / 100.0) * 360
+
+    drawing.add(
+        Wedge(
+            102,
+            102,
+            70,
+            90,
+            90 - angle,
+            strokeColor=colour,
+            strokeWidth=12,
+            fillColor=None,
+        )
+    )
+
+    # Inner Circle
+
+    drawing.add(
+        Circle(
+            102,
+            102,
+            56,
+            fillColor=BACKGROUND,
+            strokeColor=None,
+        )
+    )
+
+    # Score
+
+    drawing.add(
+        String(
+            102,
+            126,
+            str(score),
+            textAnchor="middle",
+            fontName=FONT_BOLD,
+            fontSize=32,
+            fillColor=WHITE,
+        )
+    )
+
+    drawing.add(
+        String(
+            102,
+            101,
+            "/100",
+            textAnchor="middle",
+            fontName=FONT,
+            fontSize=12,
+            fillColor=LIGHT,
+        )
+    )
+
+    drawing.add(
+        String(
+            102,
+            74,
+            posture.upper(),
+            textAnchor="middle",
+            fontName=FONT_BOLD,
+            fontSize=14,
+            fillColor=colour,
+        )
+    )
+
+    drawing.add(
+        String(
+            102,
+            38,
+            "Overall Security Score",
+            textAnchor="middle",
+            fontName=FONT,
+            fontSize=10,
+            fillColor=LIGHT,
+        )
+    )
+
+    return drawing
+
 
 # ==========================================================
 # COVER PAGE
 # ==========================================================
-
 def build_cover_page(story):
 
-    story.append(Spacer(1, 1.3 * inch))
+    # ======================================================
+    # Title
+    # ======================================================
+
+    story.append(Spacer(1, 1.20 * inch))
 
     story.append(
         Paragraph(
             "ShadowPath",
-            TITLE_STYLE,
+            ParagraphStyle(
+                "CoverTitle",
+                parent=TITLE_STYLE,
+                fontName=FONT_BOLD,
+                fontSize=36,
+                alignment=TA_CENTER,
+                textColor=WHITE,
+                spaceAfter=18,
+            ),
         )
     )
 
     story.append(
         Paragraph(
-            "Enterprise Active Directory Security Assessment",
-            BODY_STYLE,
+            "Enterprise Attack Path Intelligence Platform",
+            ParagraphStyle(
+                "CoverSubtitle",
+                parent=BODY_STYLE,
+                alignment=TA_CENTER,
+                textColor=LIGHT,
+                fontSize=13,
+                leading=16,
+                spaceAfter=18,
+            ),
         )
     )
+
+    story.append(
+        Paragraph(
+            "<b>ACTIVE DIRECTORY SECURITY ASSESSMENT REPORT</b>",
+            ParagraphStyle(
+                "CoverReport",
+                parent=BODY_STYLE,
+                fontName=FONT_BOLD,
+                alignment=TA_CENTER,
+                fontSize=15,
+                textColor=WHITE,
+                spaceAfter=22,
+            ),
+        )
+    )
+
+    # ======================================================
+    # Enterprise Badge
+    # ======================================================
+
+    badge = Table(
+        [["ENTERPRISE EDITION"]],
+        colWidths=[2.2 * inch],
+    )
+
+    badge.setStyle(
+        TableStyle([
+
+            ("BACKGROUND", (0, 0), (-1, -1), CARD),
+
+            ("TEXTCOLOR", (0, 0), (-1, -1), BLUE),
+
+            ("FONTNAME", (0, 0), (-1, -1), FONT_BOLD),
+
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+
+            ("BOX", (0, 0), (-1, -1), 1.2, BLUE),
+
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+
+        ])
+    )
+
+    wrapper = Table([[badge]], colWidths=[6.2 * inch])
+
+    wrapper.setStyle(
+        TableStyle([
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("BACKGROUND", (0, 0), (-1, -1), BACKGROUND),
+        ])
+    )
+
+    story.append(wrapper)
 
     story.append(spacer(0.30))
 
@@ -331,11 +576,25 @@ def build_cover_page(story):
 
     story.append(spacer(0.30))
 
+    # ======================================================
+    # Assessment Metadata
+    # ======================================================
+
     generated = datetime.now().strftime("%d %B %Y")
 
     info = [
 
-        ["Platform", "ShadowPath"],
+        [
+            Paragraph(
+                "<b>Assessment Metadata</b>",
+                CARD_TITLE,
+            ),
+            "",
+        ],
+
+        ["Platform", "ShadowPath Enterprise"],
+
+        ["Engine", "v1.0"],
 
         ["Assessment", "Active Directory Attack Intelligence"],
 
@@ -353,28 +612,48 @@ def build_cover_page(story):
     table.setStyle(
         TableStyle([
 
+            ("SPAN", (0, 0), (1, 0)),
+
             ("BACKGROUND", (0, 0), (-1, -1), CARD),
 
             ("TEXTCOLOR", (0, 0), (-1, -1), WHITE),
 
-            ("BOX", (0, 0), (-1, -1), 1, BLUE),
+            ("BOX", (0, 0), (-1, -1), 1.2, BLUE),
 
-            ("GRID", (0, 0), (-1, -1), 0.25, GREY),
+            ("GRID", (0, 1), (-1, -1), 0.25, GREY),
 
-            ("TOPPADDING", (0, 0), (-1, -1), 12),
+            ("FONTNAME", (0, 1), (0, -1), FONT_BOLD),
 
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+            ("TOPPADDING", (0, 0), (-1, -1), 10),
+
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+
         ])
     )
 
     story.append(table)
 
-    story.append(Spacer(1, 4.2 * inch))
+    story.append(Spacer(1, 2.9 * inch))
+
+    # ======================================================
+    # Tagline
+    # ======================================================
 
     story.append(
         Paragraph(
-            "Generated automatically by ShadowPath",
-            SMALL_STYLE,
+            "<i>Visualizing privilege escalation before attackers do.</i>",
+            ParagraphStyle(
+                "Tagline",
+                parent=SMALL_STYLE,
+                alignment=TA_CENTER,
+                fontSize=10,
+                leading=14,
+                textColor=LIGHT,
+            ),
         )
     )
 
@@ -411,17 +690,30 @@ def build_executive_summary(story, findings, summary):
 
     cards = Table(
         [[
-            metric_card("Findings", total_findings),
-            metric_card("Critical", critical),
-            metric_card("High", high),
-            metric_card("Medium", medium),
-        ]]
+            metric_card("Findings", total_findings, "Attack Paths"),
+            metric_card("Critical", critical, "Immediate Action"),
+            metric_card("High", high, "High Priority"),
+            metric_card("Medium", medium, "Monitor"),
+        ]],
+        colWidths=[
+            1.7 * inch,
+            1.7 * inch,
+            1.7 * inch,
+            1.7 * inch,
+        ],
     )
 
     cards.setStyle(
         TableStyle([
             ("BACKGROUND", (0, 0), (-1, -1), BACKGROUND),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 18),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 22),
+
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ])
     )
 
@@ -451,72 +743,144 @@ def build_environment_overview(story, findings, summary):
 
     story.append(heading("Environment Overview"))
 
+    critical = summary.get("critical", 0)
+    high = summary.get("high", 0)
+    medium = summary.get("medium", 0)
+    low = summary.get("low", 0)
+
+    maximum = max(critical, high, medium, low, 1)
+
+    def severity_bar(label, value, color):
+        bars = int((value / maximum) * 10)
+
+        label = label.ljust(8).replace(" ", "&nbsp;")
+
+        return Paragraph(
+            f'{label}'
+            f'<font color="{color}">{"█" * bars}</font>'
+            f'&nbsp;&nbsp;<b>{value}</b>',
+            BODY_STYLE,
+        )
+
     rows = [
 
-        ["Assessment Scope", "Active Directory"],
+        [
+            "Assessment Scope",
+            "Active Directory",
+            severity_bar("Critical", critical, "#ff5b73"),
+        ],
 
-        ["Attack Paths", str(len(findings))],
+        [
+            "Attack Paths",
+            str(len(findings)),
+            severity_bar("High", high, "#ffb347"),
+        ],
 
-        ["Critical Findings", str(summary.get("critical", 0))],
+        [
+            "Critical Findings",
+            str(critical),
+            severity_bar("Medium", medium, "#8b5cf6"),
+        ],
 
-        ["High Findings", str(summary.get("high", 0))],
+        [
+            "High Findings",
+            str(high),
+            severity_bar("Low", low, "#22c55e"),
+        ],
 
-        ["Medium Findings", str(summary.get("medium", 0))],
+        [
+            "Medium Findings",
+            str(medium),
+            "",
+        ],
 
-        ["Low Findings", str(summary.get("low", 0))],
+        [
+            "Low Findings",
+            str(low),
+            "",
+        ],
 
-        ["Assessment Engine", "ShadowPath"],
+        [
+            "Assessment Engine",
+            "ShadowPath",
+            "",
+        ],
 
     ]
 
     table = Table(
         rows,
-        colWidths=[2.5 * inch, 3.7 * inch],
+        colWidths=[
+            2.1 * inch,
+            1.5 * inch,
+            3.0 * inch,
+        ],
     )
 
     table.setStyle(
         TableStyle([
 
+            ("FONTNAME", (2, 0), (2, 3), "Courier"),
+            ("FONTSIZE", (2, 0), (2, 3), 9),
+
+            ("TEXTCOLOR", (2, 0), (2, 0), RED),
+            ("TEXTCOLOR", (2, 1), (2, 1), ORANGE),
+            ("TEXTCOLOR", (2, 2), (2, 2), PURPLE),
+            ("TEXTCOLOR", (2, 3), (2, 3), GREEN),
+
             ("BACKGROUND", (0, 0), (-1, -1), CARD),
 
             ("TEXTCOLOR", (0, 0), (-1, -1), WHITE),
 
-            ("BOX", (0, 0), (-1, -1), 1, PURPLE),
+            ("BOX", (0, 0), (-1, -1), 1.2, PURPLE),
 
-            ("GRID", (0, 0), (-1, -1), 0.25, GREY),
+            ("GRID", (0, 0), (1, -1), 0.25, GREY),
+            ("GRID", (2, 0), (2, 3), 0.25, GREY),
 
-            ("TOPPADDING", (0, 0), (-1, -1), 10),
+            ("SPAN", (2, 4), (2, 6)),
 
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+            ("TOPPADDING", (0, 0), (-1, -1), 8),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
 
         ])
     )
 
     story.append(table)
 
-    story.append(spacer())
-
-
-# ==========================================================
+    story.append(spacer(0.18))
+    story.append(PageBreak())
+#==========================================================
 # SECURITY POSTURE
 # ==========================================================
 
 def build_security_posture(story, findings, summary):
 
-    story.append(heading("Security Posture"))
-
-    total = len(findings)
+    # ==========================================
+    # Calculate Statistics
+    # ==========================================
 
     critical = sum(
-        1
-        for f in findings
+        1 for f in findings
         if getattr(f, "severity", "").lower() == "critical"
     )
 
     high = sum(
-        1
-        for f in findings
+        1 for f in findings
         if getattr(f, "severity", "").lower() == "high"
+    )
+
+    medium = sum(
+        1 for f in findings
+        if getattr(f, "severity", "").lower() == "medium"
+    )
+
+    low = sum(
+        1 for f in findings
+        if getattr(f, "severity", "").lower() == "low"
     )
 
     score = summary.get("overall_score", 0)
@@ -532,33 +896,228 @@ def build_security_posture(story, findings, summary):
     else:
         posture = "Critical"
 
-    rows = [
-        ["Overall Security Score", f"{score}/100"],
-        ["Security Posture", posture],
-        ["Critical Findings", str(critical)],
-        ["High Findings", str(high)],
-    ]
+    # ==========================================
+    # SECTION TITLE
+    # ==========================================
 
-    table = Table(
-        rows,
-        colWidths=[2.8 * inch, 3.0 * inch],
+    story.append(heading("Security Posture"))
+    # ==========================================
+    # Executive Summary Card
+    # ==========================================
+
+    from datetime import datetime
+
+    priority = (
+        "Immediate"
+        if critical > 0
+        else "Monitor"
     )
 
-    table.setStyle(
+    generated = datetime.now().strftime("%d %b %Y")
+
+    rows = [
+
+        ["Overall Score", f"{score}/100"],
+
+        ["Security Posture", posture],
+
+        ["Executive Priority", priority],
+
+        ["Assessment Type", "Read-Only"],
+
+        ["Assessment Engine", "ShadowPath"],
+
+        ["Report Generated", generated],
+
+    ]
+
+    summary_table = Table(
+        rows,
+        colWidths=[2.4 * inch, 2.2 * inch],
+    )
+
+    summary_table.setStyle(
         TableStyle([
+
             ("BACKGROUND", (0, 0), (-1, -1), CARD),
+
             ("TEXTCOLOR", (0, 0), (-1, -1), WHITE),
-            ("BOX", (0, 0), (-1, -1), 1, BLUE),
+
+            ("BOX", (0, 0), (-1, -1), 1.5, BLUE),
+
             ("GRID", (0, 0), (-1, -1), 0.25, GREY),
-            ("TOPPADDING", (0, 0), (-1, -1), 10),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+
+            ("TOPPADDING", (0, 0), (-1, -1), 9),
+
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+
         ])
     )
 
-    story.append(table)
+    # ==========================================
+    # Gauge + Executive Card
+    # ==========================================
 
-    story.append(PageBreak())
+    top_layout = Table(
 
+        [[
+
+            risk_gauge(score, posture),
+
+            summary_table,
+
+        ]],
+
+        colWidths=[2.45 * inch, 3.55 * inch],
+
+    )
+
+    top_layout.setStyle(
+
+        TableStyle([
+
+            ("BACKGROUND", (0, 0), (-1, -1), BACKGROUND),
+
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+
+        ])
+
+    )
+
+    story.append(top_layout)
+
+    story.append(spacer(0.20))
+
+    # ==========================================
+    # Executive Assessment
+    # ==========================================
+
+    story.append(
+        Paragraph(
+            "Executive Assessment",
+            SECTION_STYLE,
+        )
+    )
+
+    if critical >= 5:
+
+        assessment = (
+            f"ShadowPath identified <b>{critical}</b> Critical privilege "
+            f"escalation paths that could ultimately compromise Tier-0 "
+            f"administrative assets. The current security posture is rated "
+            f"<font color='#FFB547'><b>{posture.upper()}</b></font> "
+            f"with an overall enterprise security score of "
+            f"<font color='#36C2F6'><b>{score}/100</b></font>. "
+            f"The assessment indicates a high concentration of privileged "
+            f"access that should be remediated before additional identity "
+            f"expansion or infrastructure changes."
+        )
+
+    elif critical > 0:
+
+        assessment = (
+            f"ShadowPath detected Critical attack paths requiring immediate "
+            f"attention. The environment currently has a security score of "
+            f"<b>{score}/100</b> and is classified as "
+            f"<b>{posture.upper()}</b>. Timely remediation will significantly "
+            f"reduce the likelihood of privilege escalation."
+        )
+
+    elif high > 0:
+
+        assessment = (
+            f"No Critical findings were identified; however, High-risk attack "
+            f"paths remain. The environment currently scores "
+            f"<b>{score}/100</b> and continued privilege review is recommended."
+        )
+
+    else:
+
+        assessment = (
+            f"No significant attack paths requiring executive intervention "
+            f"were identified. The environment currently maintains a security "
+            f"score of <b>{score}/100</b>."
+        )
+
+    story.append(
+        body(
+            assessment
+        )
+    )
+
+    story.append(spacer(0.08))
+    # ==========================================
+    # Immediate Recommendations
+    # ==========================================
+
+    story.append(
+        Paragraph(
+            "Immediate Recommendations",
+            SECTION_STYLE,
+        )
+    )
+
+    recommendations = [
+
+        "• Review ServerAdmins and Tier-0 administrative group memberships.",
+
+        "• Remove unnecessary delegated administrative permissions.",
+
+        "• Audit nested group relationships that enable privilege escalation.",
+
+        "• Apply the Principle of Least Privilege (PoLP) across privileged accounts.",
+
+        "• Schedule recurring ShadowPath assessments to monitor identity exposure.",
+
+    ]
+
+    recommendation_rows = [
+        [Paragraph(item, BODY_STYLE)]
+        for item in recommendations
+    ]
+
+    recommendation_table = Table(
+        recommendation_rows,
+        colWidths=[6.2 * inch],
+    )
+
+    recommendation_table.setStyle(
+        TableStyle([
+
+            ("BACKGROUND", (0, 0), (-1, -1), CARD),
+
+            ("TEXTCOLOR", (0, 0), (-1, -1), WHITE),
+
+            ("BOX", (0, 0), (-1, -1), 1.5, BLUE),
+
+            ("TOPPADDING", (0, 0), (-1, -1), 8),
+
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 12),
+
+            ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+
+        ])
+    )
+
+    story.append(
+        KeepTogether([
+            recommendation_table
+        ])
+    )
+
+    story.append(spacer(0.10))
 # ==========================================================
 # FINDING HELPERS
 # ==========================================================
@@ -577,6 +1136,157 @@ def severity_color(severity):
         return PURPLE
 
     return GREEN
+
+# ==========================================================
+# PROGRESS BAR
+# ==========================================================
+
+from reportlab.graphics.shapes import (
+    Drawing,
+    Rect,
+    String,
+)
+
+
+def progress_bar(label, value, maximum, colour):
+
+    width = 260
+    height = 18
+
+    drawing = Drawing(width + 120, 32)
+
+    # Label
+
+    drawing.add(
+        String(
+            0,
+            22,
+            label,
+            fontName=FONT_BOLD,
+            fontSize=10,
+            fillColor=WHITE,
+        )
+    )
+
+    # Background Bar
+
+    drawing.add(
+        Rect(
+            85,
+            12,
+            width,
+            height,
+            fillColor=CARD_ALT,
+            strokeColor=GREY,
+            strokeWidth=0.5,
+        )
+    )
+
+    # Filled Bar
+
+    if maximum > 0:
+        fill_width = (value / maximum) * width
+    else:
+        fill_width = 0
+
+    drawing.add(
+        Rect(
+            85,
+            12,
+            fill_width,
+            height,
+            fillColor=colour,
+            strokeColor=None,
+        )
+    )
+
+    # Value
+
+    drawing.add(
+        String(
+            width + 95,
+            22,
+            str(value),
+            fontName=FONT_BOLD,
+            fontSize=10,
+            fillColor=WHITE,
+        )
+    )
+
+    return drawing
+
+# ==========================================================
+# EXECUTIVE ASSESSMENT
+# ==========================================================
+
+def executive_assessment(
+    findings,
+    score,
+    posture,
+    critical,
+    high,
+    medium,
+    low,
+):
+
+    total = len(findings)
+
+    if critical >= 5:
+
+        priority = (
+            "Immediate executive action is recommended. Multiple "
+            "privilege escalation paths currently expose Tier-0 assets "
+            "and significantly increase enterprise risk."
+        )
+
+    elif critical > 0:
+
+        priority = (
+            "Critical attack paths were identified and should be "
+            "remediated as the highest priority before additional "
+            "hardening activities."
+        )
+
+    elif high > 0:
+
+        priority = (
+            "No Critical findings were identified; however, High-risk "
+            "attack paths should be reviewed to prevent privilege "
+            "escalation."
+        )
+
+    else:
+
+        priority = (
+            "No significant attack paths requiring immediate executive "
+            "attention were identified during this assessment."
+        )
+
+    return (
+        f"<b>Overall Assessment</b><br/><br/>"
+
+        f"ShadowPath analysed <b>{total}</b> attack path(s) across the "
+        f"Active Directory environment and calculated an overall "
+        f"security score of <font color='#36C2F6'><b>{score}/100</b></font>."
+
+        f"<br/><br/>"
+
+        f"The environment is currently classified as "
+        f"<font color='#FFB547'><b>{posture.upper()}</b></font>."
+
+        f"<br/><br/>"
+
+        f"<b>Findings Summary</b><br/>"
+
+        f"Critical: <b>{critical}</b><br/>"
+        f"High: <b>{high}</b><br/>"
+        f"Medium: <b>{medium}</b><br/>"
+        f"Low: <b>{low}</b>"
+
+        f"<br/><br/>"
+
+        f"{priority}"
+    )
 
 def build_finding_card(finding):
 
@@ -661,7 +1371,7 @@ def build_finding_card(finding):
 # ==========================================================
 
 def build_attack_intelligence(story, findings):
-
+    story.append(PageBreak())
     story.append(heading("Attack Intelligence"))
 
     if not findings:
@@ -703,10 +1413,70 @@ def build_attack_intelligence(story, findings):
 # ==========================================================
 # MITRE ATT&CK SUMMARY
 # ==========================================================
-
 def build_mitre_summary(story, findings):
 
     story.append(heading("MITRE ATT&CK Summary"))
+
+    MITRE_INFO = {
+        "T1078": (
+            "Valid Accounts",
+            "Attackers use legitimate credentials to access enterprise resources while blending in with normal user activity."
+        ),
+        "T1068": (
+            "Exploitation for Privilege Escalation",
+            "Software vulnerabilities are exploited to obtain elevated privileges on systems or within Active Directory."
+        ),
+        "T1484": (
+            "Domain Policy Modification",
+            "Group Policy Objects or domain settings are modified to weaken security controls or establish persistence."
+        ),
+        "T1098": (
+            "Account Manipulation",
+            "Existing accounts are modified by changing memberships, permissions, or credentials to maintain unauthorized access."
+        ),
+        "T1021": (
+            "Remote Services",
+            "Lateral movement is performed using remote administration protocols such as SMB, RDP, WinRM, or SSH."
+        ),
+        "T1070": (
+            "Indicator Removal on Host",
+            "Evidence such as logs or artifacts is removed or altered to reduce the likelihood of detection."
+        ),
+
+        # Additional common techniques for future findings
+        "T1550": (
+            "Use Alternate Authentication Material",
+            "Authentication tokens, hashes, or Kerberos tickets are abused instead of passwords."
+        ),
+        "T1558": (
+            "Steal or Forge Kerberos Tickets",
+            "Kerberos tickets are stolen or forged to impersonate privileged users."
+        ),
+        "T1003": (
+            "OS Credential Dumping",
+            "Credentials are extracted from operating system memory or protected storage."
+        ),
+        "T1047": (
+            "Windows Management Instrumentation",
+            "Windows Management Instrumentation is abused for remote execution and administration."
+        ),
+        "T1059": (
+            "Command and Scripting Interpreter",
+            "PowerShell, CMD, or scripting languages are used to execute malicious commands."
+        ),
+        "T1110": (
+            "Brute Force",
+            "Repeated authentication attempts are used to guess valid credentials."
+        ),
+        "T1548": (
+            "Abuse Elevation Control Mechanism",
+            "Privilege escalation is achieved by bypassing User Account Control or similar protections."
+        ),
+        "T1136": (
+            "Create Account",
+            "New user or service accounts are created to maintain persistence."
+        ),
+    }
 
     techniques = {}
 
@@ -725,10 +1495,10 @@ def build_mitre_summary(story, findings):
             if isinstance(technique, dict):
 
                 technique_name = (
-                        technique.get("technique")
-                        or technique.get("id")
-                        or technique.get("name")
-                        or "Unknown Technique"
+                    technique.get("technique")
+                    or technique.get("id")
+                    or technique.get("name")
+                    or "Unknown Technique"
                 )
 
             else:
@@ -736,15 +1506,13 @@ def build_mitre_summary(story, findings):
                 technique_name = str(technique)
 
             techniques[technique_name] = (
-                    techniques.get(technique_name, 0) + 1
+                techniques.get(technique_name, 0) + 1
             )
 
     if not techniques:
 
         story.append(
-            body(
-                "No MITRE ATT&CK mappings were available."
-            )
+            body("No MITRE ATT&CK mappings were available.")
         )
 
         story.append(PageBreak())
@@ -759,12 +1527,7 @@ def build_mitre_summary(story, findings):
         reverse=True,
     ):
 
-        rows.append(
-            [
-                str(technique),
-                str(count),
-            ]
-        )
+        rows.append([technique, str(count)])
 
     table = Table(
         rows,
@@ -796,11 +1559,46 @@ def build_mitre_summary(story, findings):
 
     story.append(table)
 
+    story.append(spacer(0.25))
+
+    story.append(
+        Paragraph(
+            '<font color="#38bdf8"><b>Executive Technique Reference</b></font>',
+            BODY_STYLE,
+        )
+    )
+
+    story.append(spacer(0.12))
+
+    for technique, count in sorted(
+        techniques.items(),
+        key=lambda x: x[1],
+        reverse=True,
+    ):
+
+        title, description = MITRE_INFO.get(
+            technique,
+            (
+                "Unknown Technique",
+                "This MITRE ATT&CK technique is mapped by ShadowPath but no executive description is currently available."
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f'<font color="#38bdf8"><b>{technique}</b></font> '
+                f'<b>{title}</b><br/>'
+                f'{description}',
+                BODY_STYLE,
+            )
+        )
+
+        story.append(spacer(0.10))
+
     story.append(PageBreak())
 # ==========================================================
 # EXECUTIVE REMEDIATION ROADMAP
 # ==========================================================
-
 def build_remediation_roadmap(story, findings):
 
     story.append(heading("Executive Remediation Roadmap"))
@@ -885,64 +1683,335 @@ def build_remediation_roadmap(story, findings):
 
     story.append(table)
 
-    story.append(PageBreak())
+    story.append(spacer(0.25))
 
-
-# ==========================================================
-# APPENDIX
-# ==========================================================
-
-def build_appendix(story, findings):
-
-    story.append(heading("Appendix"))
+    # -------------------------------------------------------
+    # Expected Security Impact
+    # -------------------------------------------------------
 
     story.append(
-        body(
-            "This report was generated automatically by ShadowPath. "
-            "Risk scores are calculated using attack-path analysis, "
-            "privilege relationships, and security heuristics."
+        Paragraph(
+            '<font color="#38bdf8"><b>Expected Security Impact</b></font>',
+            BODY_STYLE,
         )
     )
 
-    story.append(spacer())
+    story.append(spacer(0.08))
 
-    rows = [["#", "Severity", "Risk"]]
+    impact = [
 
-    for index, finding in enumerate(findings, start=1):
+        "Eliminate identified Critical attack paths.",
 
-        rows.append([
-            str(index),
-            getattr(finding, "severity", "-"),
-            str(getattr(finding, "score", "-")),
-        ])
+        "Reduce privileged account exposure across Active Directory.",
+
+        "Minimize opportunities for privilege escalation and lateral movement.",
+
+        "Improve identity governance and administrative account hygiene.",
+
+        "Strengthen long-term enterprise security posture through continuous assessments.",
+
+    ]
+
+    for item in impact:
+
+        story.append(
+            Paragraph(
+                f'• {item}',
+                BODY_STYLE,
+            )
+        )
+
+        story.append(spacer(0.04))
+
+    story.append(spacer(0.20))
+
+    # -------------------------------------------------------
+    # Executive Closing Statement
+    # -------------------------------------------------------
+
+    story.append(
+        Paragraph(
+            '<font color="#38bdf8"><b>Executive Closing Statement</b></font>',
+            BODY_STYLE,
+        )
+    )
+
+    story.append(spacer(0.08))
+
+    story.append(
+
+        Paragraph(
+
+            "ShadowPath identified Active Directory attack paths that may allow an "
+            "adversary to escalate privileges and expand access within the enterprise "
+            "environment. Immediate remediation of Critical findings should be prioritized "
+            "to reduce attack surface and limit lateral movement opportunities. "
+            "Implementing the recommendations outlined in this assessment will improve "
+            "privileged access governance, strengthen identity security, and enhance the "
+            "overall resilience of the Active Directory infrastructure.",
+
+            BODY_STYLE,
+
+        )
+
+    )
+
+    story.append(PageBreak())
+# ==========================================================
+# APPENDIX
+# ==========================================================
+def build_appendix(story, findings):
+
+    story.append(heading("Assessment Metadata"))
+
+    assessment_id = datetime.now().strftime("SP-%Y%m%d-%H%M%S")
+
+    critical = sum(
+        1 for f in findings
+        if getattr(f, "severity", "").lower() == "critical"
+    )
+
+    high = sum(
+        1 for f in findings
+        if getattr(f, "severity", "").lower() == "high"
+    )
+
+    medium = sum(
+        1 for f in findings
+        if getattr(f, "severity", "").lower() == "medium"
+    )
+
+    low = sum(
+        1 for f in findings
+        if getattr(f, "severity", "").lower() == "low"
+    )
+
+    mitre = set()
+
+    for finding in findings:
+
+        techniques = getattr(finding, "mitre", [])
+
+        if not isinstance(techniques, (list, tuple)):
+            techniques = [techniques]
+
+        for t in techniques:
+
+            if isinstance(t, dict):
+                mitre.add(
+                    t.get("technique")
+                    or t.get("id")
+                    or t.get("name")
+                )
+
+            elif t:
+                mitre.add(str(t))
+
+    metadata = [
+
+        ["Assessment ID", assessment_id],
+
+        ["Assessment Engine", "ShadowPath Enterprise"],
+
+        ["Engine Version", "v1.0"],
+
+        ["Assessment Date",
+         datetime.now().strftime("%d %B %Y %H:%M")],
+
+        ["Risk Engine",
+         "Graph Heuristic Scoring"],
+
+        ["Analysis Type",
+         "Active Directory Attack Path Analysis"],
+
+        ["Findings Generated",
+         str(len(findings))],
+
+        ["Critical Findings",
+         str(critical)],
+
+        ["High Findings",
+         str(high)],
+
+        ["Medium Findings",
+         str(medium)],
+
+        ["Low Findings",
+         str(low)],
+
+        ["MITRE Techniques",
+         str(len(mitre))],
+
+    ]
 
     table = Table(
-        rows,
-        colWidths=[0.6 * inch, 2.4 * inch, 1.2 * inch],
+        metadata,
+        colWidths=[2.3 * inch, 4.0 * inch],
     )
 
     table.setStyle(
         TableStyle([
 
-            ("BACKGROUND", (0, 0), (-1, 0), BLUE),
+            ("BACKGROUND", (0, 0), (-1, -1), CARD),
 
-            ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
-
-            ("BACKGROUND", (0, 1), (-1, -1), CARD),
-
-            ("TEXTCOLOR", (0, 1), (-1, -1), WHITE),
+            ("TEXTCOLOR", (0, 0), (-1, -1), WHITE),
 
             ("GRID", (0, 0), (-1, -1), 0.25, GREY),
 
             ("BOX", (0, 0), (-1, -1), 1, BLUE),
 
-            ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
+            ("FONTNAME", (0, 0), (0, -1), FONT_BOLD),
+
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+
         ])
     )
 
     story.append(table)
 
-    story.append(PageBreak())
+    story.append(spacer(0.08))
+
+    story.append(
+        Paragraph(
+            '<font color="#38bdf8"><b>Assessment Capabilities</b></font>',
+            BODY_STYLE,
+        )
+    )
+
+    story.append(spacer(0.05))
+
+    # --------------------------------------------------
+    # Capabilities Table
+    # --------------------------------------------------
+
+    capabilities = [
+
+        "✓ Graph Construction",
+
+        "✓ Privilege Relationship Analysis",
+
+        "✓ Attack Path Discovery",
+
+        "✓ Privilege Escalation Detection",
+
+        "✓ Risk Heuristic Scoring",
+
+        "✓ MITRE ATT&CK Mapping",
+
+        "✓ Executive Report Generation",
+
+        "✓ Remediation Prioritization",
+
+    ]
+
+    capability_rows = []
+
+    for item in capabilities:
+
+        capability_rows.append(
+            [Paragraph(item, BODY_STYLE)]
+        )
+
+    capability_table = Table(
+        capability_rows,
+        colWidths=[2.8 * inch],
+    )
+
+    capability_table.setStyle(
+        TableStyle([
+
+            ("BACKGROUND", (0,0), (-1,-1), BACKGROUND),
+
+            ("LEFTPADDING", (0,0), (-1,-1), 0),
+
+            ("RIGHTPADDING", (0,0), (-1,-1), 0),
+
+            ("TOPPADDING", (0,0), (-1,-1), 2),
+
+            ("BOTTOMPADDING", (0,0), (-1,-1), 2),
+
+        ])
+    )
+
+    # --------------------------------------------------
+    # Assessment Notes Card
+    # --------------------------------------------------
+
+    notes = Table(
+        [[
+            Paragraph(
+                "<font color='#38bdf8'><b>Assessment Notes</b></font><br/><br/>"
+
+                "This assessment represents the security posture of the "
+                "analyzed Active Directory environment at the time of "
+                "execution.<br/><br/>"
+
+                "Risk scores are derived using ShadowPath's graph-based "
+                "heuristic engine together with MITRE ATT&CK mappings."
+                "<br/><br/>"
+
+                "Results should be interpreted alongside organizational "
+                "security policies and do not replace comprehensive "
+                "penetration testing or formal security audits.",
+
+                SMALL_STYLE,
+            )
+        ]],
+        colWidths=[3.0 * inch],
+    )
+
+    notes.setStyle(
+        TableStyle([
+
+            ("BACKGROUND", (0,0), (-1,-1), CARD),
+
+            ("BOX", (0,0), (-1,-1), 1.2, BLUE),
+
+            ("LEFTPADDING", (0,0), (-1,-1), 10),
+
+            ("RIGHTPADDING", (0,0), (-1,-1), 10),
+
+            ("TOPPADDING", (0,0), (-1,-1), 8),
+
+            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+
+        ])
+    )
+
+    # --------------------------------------------------
+    # Final Layout
+    # --------------------------------------------------
+
+    layout = Table(
+        [[
+            capability_table,
+            notes,
+        ]],
+        colWidths=[
+            2.9 * inch,
+            3.3 * inch,
+        ],
+        splitByRow=1,
+    )
+
+    layout.setStyle(
+        TableStyle([
+
+            ("BACKGROUND", (0,0), (-1,-1), BACKGROUND),
+
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+
+            ("LEFTPADDING", (0,0), (-1,-1), 0),
+
+            ("RIGHTPADDING", (0,0), (-1,-1), 0),
+
+        ])
+    )
+
+    story.append(layout)
+
 
 # ==========================================================
 # PUBLIC API
@@ -1000,14 +2069,16 @@ def generate_report(findings, summary):
         findings,
     )
 
-    # Appendix
+    # Metadata
     build_appendix(
         story,
         findings,
     )
 
     doc.build(story)
+
     print(report_path)
+
     return str(report_path)
 
 
