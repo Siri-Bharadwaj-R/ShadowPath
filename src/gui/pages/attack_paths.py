@@ -4,7 +4,6 @@ ShadowPath Attack Paths Page
 Displays discovered attack paths with filtering,
 searching and detailed path inspection.
 """
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget,

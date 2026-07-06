@@ -1,8 +1,6 @@
 from collections import Counter
 
-from analysis.high_value_targets import HIGH_VALUE_TARGETS
-
-
+from .high_value_targets import HIGH_VALUE_TARGETS
 def generate_graph_intelligence(graph, attack_paths):
     """
     Generate intelligence about the Active Directory attack graph.

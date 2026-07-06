@@ -1,6 +1,6 @@
 import json
 
-from core.models import Relationship
+from ..core.models import Relationship
 
 
 def load_relationships(file_path: str):

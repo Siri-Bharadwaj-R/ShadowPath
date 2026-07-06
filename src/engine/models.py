@@ -5,7 +5,7 @@ ShadowPath Engine Models
 from dataclasses import dataclass
 import networkx as nx
 
-from analysis.findings import Finding
+from ..analysis.findings import Finding
 
 
 

@@ -6,21 +6,20 @@ Enterprise backend orchestration layer.
 
 from typing import Callable
 
-from ad.ldap_collector import LDAPCollector
-from ad.relationship_builder import RelationshipBuilder
+from ..ad.ldap_collector import LDAPCollector
+from ..ad.relationship_builder import RelationshipBuilder
 
-from core.graph_builder import build_graph
+from ..core.graph_builder import build_graph
 
-from analysis.attack_paths import find_attack_paths
-from analysis.path_prioritizer import prioritize_attack_paths
-from analysis.risk_engine import calculate_risk
-from analysis.attack_simulator import generate_attack_simulation
-from analysis.mitre_engine import generate_mitre_mapping
-from analysis.intelligence_engine import generate_graph_intelligence
-from analysis.remediation_engine import generate_remediation_plan
-from analysis.security_summary import generate_security_summary
-from analysis.findings import Finding
-
+from ..analysis.attack_paths import find_attack_paths
+from ..analysis.path_prioritizer import prioritize_attack_paths
+from ..analysis.risk_engine import calculate_risk
+from ..analysis.attack_simulator import generate_attack_simulation
+from ..analysis.mitre_engine import generate_mitre_mapping
+from ..analysis.intelligence_engine import generate_graph_intelligence
+from ..analysis.remediation_engine import generate_remediation_plan
+from ..analysis.security_summary import generate_security_summary
+from ..analysis.findings import Finding
 from .models import EngineResult
 
 

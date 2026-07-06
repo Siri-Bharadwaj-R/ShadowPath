@@ -1,6 +1,5 @@
-from core.models import Relationship
-from ad.ldap_collector import LDAPCollector
-
+from ..core.models import Relationship
+from .ldap_collector import LDAPCollector
 
 class RelationshipBuilder:
     def __init__(

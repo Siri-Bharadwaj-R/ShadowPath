@@ -1,6 +1,6 @@
 import networkx as nx
 
-from core.models import Relationship
+from ..core.models import Relationship
 
 
 def build_graph(relationships: list[Relationship]) -> nx.DiGraph:

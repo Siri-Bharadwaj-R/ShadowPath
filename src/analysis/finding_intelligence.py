@@ -1,4 +1,4 @@
-from analysis.findings import Finding
+from .findings import Finding
 
 
 def enrich_finding(finding: Finding) -> Finding:

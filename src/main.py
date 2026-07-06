@@ -7,8 +7,6 @@ from ui.dashboard.dashboard_data import DashboardData
 from ad.ldap_collector import LDAPCollector
 from ad.relationship_builder import RelationshipBuilder
 
-from core.graph_builder import build_graph
-
 from analysis.mitre_engine import generate_mitre_mapping
 from analysis.remediation_engine import generate_remediation_plan
 from analysis.attack_paths import find_attack_paths
@@ -48,7 +46,6 @@ def main():
 
     graph = pipeline.run_stage(
         "Building Attack Graph",
-        build_graph,
         relationships
     )
 
@@ -188,6 +185,6 @@ def main():
         summary
     )
 
-    
+
 if __name__ == "__main__":
     main()
