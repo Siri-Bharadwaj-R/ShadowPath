@@ -188,12 +188,6 @@ def main():
         summary
     )
 
-    pipeline.run_stage(
-        "Rendering Attack Graph",
-        visualize_graph,
-        graph
-    )
-
-
+    
 if __name__ == "__main__":
     main()
