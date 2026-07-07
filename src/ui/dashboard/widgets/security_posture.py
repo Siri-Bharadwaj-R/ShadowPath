@@ -1,8 +1,8 @@
 from rich.columns import Columns
 from rich.console import Group
 
-from ui.framework.metric_card import MetricCard
-from ui.framework.progress_metric import ProgressMetric
+from ...framework.metric_card import MetricCard
+from ...framework.progress_metric import ProgressMetric
 
 
 def build_security_posture(data):

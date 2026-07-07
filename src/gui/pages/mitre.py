@@ -5,6 +5,7 @@ Displays ATT&CK techniques identified during
 attack path analysis.
 """
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -27,7 +28,11 @@ class MitrePage(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.mappings = []
+
         self.build_ui()
+
+    # =========================================================
 
     def build_ui(self):
 
@@ -122,7 +127,7 @@ class MitrePage(QWidget):
         body.addWidget(table_frame, 3)
 
         # =====================================================
-        # Technique Details
+        # Details Panel
         # =====================================================
 
         detail_frame = QFrame()
@@ -158,6 +163,14 @@ class MitrePage(QWidget):
         body.addWidget(detail_frame, 2)
 
         root.addLayout(body)
+
+        # =====================================================
+        # Signals
+        # =====================================================
+
+        self.table.itemSelectionChanged.connect(
+            self.update_details
+        )
 
     # =========================================================
 
@@ -234,10 +247,21 @@ class MitrePage(QWidget):
             QTableWidgetItem(tactic)
         )
 
+        severity_item = QTableWidgetItem(severity)
+
+        if severity == "Critical":
+            severity_item.setBackground(Qt.GlobalColor.darkRed)
+
+        elif severity == "High":
+            severity_item.setBackground(Qt.GlobalColor.darkYellow)
+
+        elif severity == "Medium":
+            severity_item.setBackground(Qt.GlobalColor.darkCyan)
+
         self.table.setItem(
             row,
             3,
-            QTableWidgetItem(severity)
+            severity_item
         )
 
     # =========================================================
@@ -245,3 +269,76 @@ class MitrePage(QWidget):
     def show_details(self, text: str):
 
         self.details.setPlainText(text)
+
+    # =========================================================
+
+    def load_result(self, result):
+
+        self.clear()
+
+        self.mappings = []
+
+        for finding in result.findings:
+
+            for technique in finding.mitre:
+
+                self.add_mapping(
+                    technique["name"],
+                    technique["id"],
+                    technique["tactic"],
+                    finding.severity,
+                )
+
+                self.mappings.append(
+                    (technique, finding)
+                )
+
+    # =========================================================
+
+    def update_details(self):
+
+        row = self.table.currentRow()
+
+        if row < 0:
+            return
+
+        technique, finding = self.mappings[row]
+
+        text = f"""
+Technique
+---------
+
+{technique["name"]}
+
+Technique ID
+------------
+
+{technique["id"]}
+
+Tactic
+------
+
+{technique["tactic"]}
+
+Severity
+--------
+
+{finding.severity}
+
+Risk Score
+----------
+
+{finding.score}
+
+Attack Path
+-----------
+
+{" -> ".join(finding.path)}
+
+Attack Simulation
+-----------------
+
+{chr(10).join(finding.simulation)}
+"""
+
+        self.details.setPlainText(text.strip())

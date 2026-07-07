@@ -1,6 +1,6 @@
 from rich.table import Table
 
-from ui.console import console
+from .console import console
 
 
 def show_attack_paths(findings):

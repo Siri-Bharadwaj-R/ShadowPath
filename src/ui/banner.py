@@ -2,7 +2,9 @@ from rich.align import Align
 from rich.panel import Panel
 from rich.text import Text
 
-from ui.console import console
+
+from .console import console
+from .theme import banner_style
 
 
 ASCII_LOGO = r"""

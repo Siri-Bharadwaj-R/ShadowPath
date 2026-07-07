@@ -1,6 +1,6 @@
 from rich.columns import Columns
 
-from ui.framework.metric_card import MetricCard
+from ...framework.metric_card import MetricCard
 
 
 def build_overview(data):

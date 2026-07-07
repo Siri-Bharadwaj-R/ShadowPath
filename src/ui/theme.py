@@ -16,3 +16,6 @@ shadow_theme = Theme({
     "medium": "yellow",
     "low": "green",
 })
+
+# Style used by banner.py
+banner_style = "bold bright_cyan"

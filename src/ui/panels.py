@@ -1,6 +1,6 @@
 from rich.panel import Panel
 
-from ui.console import console
+from .console import console
 
 
 def show_panel(title: str, content: str):

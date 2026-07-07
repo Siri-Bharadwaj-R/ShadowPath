@@ -1,7 +1,7 @@
 from rich.panel import Panel
 from rich.table import Table
 
-from ui.framework.palette import BORDER
+from ...framework.palette import BORDER
 
 
 def build_remediation(data):

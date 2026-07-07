@@ -2,7 +2,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from ui.framework.palette import BORDER
+from .palette import BORDER
 
 
 class ProgressMetric:

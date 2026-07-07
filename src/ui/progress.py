@@ -8,7 +8,7 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-from ui.console import console
+from .console import console
 
 
 class ProgressManager:

@@ -4,7 +4,8 @@ ShadowPath Reports Page
 Professional report generation and management interface.
 """
 
-from PyQt6.QtCore import Qt
+from datetime import datetime
+
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -57,7 +58,7 @@ class ReportsPage(QWidget):
         root.addWidget(title)
 
         # =====================================================
-        # Action Buttons
+        # Buttons
         # =====================================================
 
         actions = QHBoxLayout()
@@ -78,7 +79,7 @@ class ReportsPage(QWidget):
         root.addLayout(actions)
 
         # =====================================================
-        # Main Area
+        # Body
         # =====================================================
 
         body = QHBoxLayout()
@@ -146,7 +147,9 @@ class ReportsPage(QWidget):
 
     def add_report(self, name: str):
 
-        self.report_list.addItem(QListWidgetItem(name))
+        self.report_list.addItem(
+            QListWidgetItem(name)
+        )
 
     # =========================================================
 
@@ -170,3 +173,72 @@ class ReportsPage(QWidget):
         )
 
         return directory
+
+    # =========================================================
+
+    def load_result(self, result):
+
+        self.clear_reports()
+
+        report_name = (
+            f"ShadowPath_Report_"
+            f"{datetime.now():%Y%m%d_%H%M%S}.pdf"
+        )
+
+        self.add_report(report_name)
+
+        self.current_report = report_name
+
+        preview = f"""
+ShadowPath Executive Security Report
+
+Domain
+------
+{result.domain}
+
+Overall Security Score
+----------------------
+{result.summary["overall_score"]}/100
+
+Users
+-----
+{result.users}
+
+Groups
+------
+{result.groups}
+
+Relationships
+-------------
+{result.relationships}
+
+Attack Paths
+------------
+{len(result.attack_paths)}
+
+Critical Findings
+-----------------
+{result.summary["critical"]}
+
+High Findings
+-------------
+{result.summary["high"]}
+
+Medium Findings
+---------------
+{result.summary["medium"]}
+
+Low Findings
+------------
+{result.summary["low"]}
+
+Report Status
+-------------
+Generated Successfully
+
+Analysis Time
+-------------
+{datetime.now().strftime("%d %b %Y %H:%M:%S")}
+"""
+
+        self.set_preview(preview.strip())

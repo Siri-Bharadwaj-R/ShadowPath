@@ -2,9 +2,9 @@ from rich.align import Align
 from rich.panel import Panel
 from rich.text import Text
 
-from ui.framework.palette import BORDER
-from ui.framework.spacing import MEDIUM
-from ui.framework.typography import HEADING
+from .palette import BORDER
+from .spacing import MEDIUM
+from .typography import HEADING
 
 
 class MetricCard:

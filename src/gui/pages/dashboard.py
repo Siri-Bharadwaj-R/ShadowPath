@@ -3,12 +3,15 @@ ShadowPath Dashboard Page
 """
 
 from PyQt6.QtCore import Qt
+from ..widgets.graph_widget import GraphWidget
 from PyQt6.QtWidgets import (
     QWidget,
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
     QFrame,
+    QListWidget,
+    QListWidgetItem,
 )
 
 from ..widgets.metric_card import MetricCard
@@ -23,6 +26,8 @@ class DashboardPage(QWidget):
         super().__init__()
 
         self.build_ui()
+
+    # ======================================================
 
     def build_ui(self):
 
@@ -40,6 +45,7 @@ class DashboardPage(QWidget):
         security_layout.setContentsMargins(20, 20, 20, 20)
 
         title = QLabel("Security Score")
+
         title.setStyleSheet("""
             QLabel{
                 font-size:20px;
@@ -49,7 +55,10 @@ class DashboardPage(QWidget):
         """)
 
         self.security_score = QLabel("-- / 100")
-        self.security_score.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.security_score.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
 
         self.security_score.setStyleSheet("""
             QLabel{
@@ -113,6 +122,7 @@ class DashboardPage(QWidget):
         graph_layout = QVBoxLayout(graph)
 
         graph_title = QLabel("Attack Graph")
+
         graph_title.setStyleSheet("""
             QLabel{
                 font-size:18px;
@@ -121,19 +131,12 @@ class DashboardPage(QWidget):
             }
         """)
 
-        self.graph_placeholder = QLabel(
-            "Interactive attack graph will appear here after a scan."
-        )
+        self.graph_widget = GraphWidget()
 
-        self.graph_placeholder.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        self.graph_placeholder.setMinimumHeight(300)
+        self.graph_widget.setMinimumHeight(350)
 
         graph_layout.addWidget(graph_title)
-        graph_layout.addWidget(self.graph_placeholder)
-
+        graph_layout.addWidget(self.graph_widget)
         root.addWidget(graph)
 
         # ======================================================
@@ -143,11 +146,13 @@ class DashboardPage(QWidget):
         bottom = QHBoxLayout()
         bottom.setSpacing(16)
 
-        # ---------------- Top Findings ----------------
+        # ======================================================
+        # Findings
+        # ======================================================
 
-        self.findings_frame = QFrame()
+        findings_frame = QFrame()
 
-        findings_layout = QVBoxLayout(self.findings_frame)
+        findings_layout = QVBoxLayout(findings_frame)
 
         findings_title = QLabel("Top Findings")
 
@@ -159,23 +164,21 @@ class DashboardPage(QWidget):
             }
         """)
 
-        self.findings_placeholder = QLabel(
-            "No findings available."
-        )
-
-        self.findings_placeholder.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        self.findings_list = QListWidget()
 
         findings_layout.addWidget(findings_title)
-        findings_layout.addWidget(self.findings_placeholder)
+        findings_layout.addWidget(self.findings_list)
 
-        # ---------------- Recommendations ----------------
+        bottom.addWidget(findings_frame)
 
-        self.recommendations_frame = QFrame()
+        # ======================================================
+        # Recommendations
+        # ======================================================
+
+        recommendations_frame = QFrame()
 
         recommendations_layout = QVBoxLayout(
-            self.recommendations_frame
+            recommendations_frame
         )
 
         recommendations_title = QLabel(
@@ -190,32 +193,30 @@ class DashboardPage(QWidget):
             }
         """)
 
-        self.recommendations_placeholder = QLabel(
-            "Recommendations will appear after analysis."
-        )
-
-        self.recommendations_placeholder.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        self.recommendations_list = QListWidget()
 
         recommendations_layout.addWidget(
             recommendations_title
         )
 
         recommendations_layout.addWidget(
-            self.recommendations_placeholder
+            self.recommendations_list
         )
 
-        bottom.addWidget(self.findings_frame)
-        bottom.addWidget(self.recommendations_frame)
+        bottom.addWidget(recommendations_frame)
 
         root.addLayout(bottom)
 
     # ======================================================
 
-    def set_security_score(self, score: int):
+    def set_security_score(
+        self,
+        score: int,
+    ):
 
-        self.security_score.setText(f"{score} / 100")
+        self.security_score.setText(
+            f"{score} / 100"
+        )
 
     # ======================================================
 
@@ -228,10 +229,109 @@ class DashboardPage(QWidget):
         self.attack_paths.set_value("--")
         self.risk_level.set_value("--")
 
-        self.findings_placeholder.setText(
-            "No findings available."
+        self.findings_list.clear()
+        self.recommendations_list.clear()
+
+    # ======================================================
+
+    def load_result(self, result):
+
+        self.graph_widget.load_graph(
+            result.graph
         )
 
-        self.recommendations_placeholder.setText(
-            "Recommendations will appear after analysis."
+        self.set_security_score(
+            result.summary["overall_score"]
         )
+
+        self.total_users.set_value(
+            result.users
+        )
+
+        self.total_groups.set_value(
+            result.groups
+        )
+
+        self.attack_paths.set_value(
+            len(result.attack_paths)
+        )
+
+        self.risk_level.set_value(
+            result.summary["overall_score"]
+        )
+
+        # -----------------------------
+        # Findings
+        # -----------------------------
+
+        self.findings_list.clear()
+
+        for finding in result.findings[:5]:
+
+            self.findings_list.addItem(
+                QListWidgetItem(
+                    f"[{finding.severity}] "
+                    f"{finding.id} | "
+                    f"Risk {finding.score}\n"
+                    f"{' -> '.join(finding.path)}"
+                )
+            )
+
+        # -----------------------------
+        # Recommendations
+        # -----------------------------
+
+        self.recommendations_list.clear()
+
+        for recommendation in result.remediation_plan[:5]:
+
+            self.recommendations_list.addItem(
+                QListWidgetItem(
+                    recommendation["recommendation"]
+                )
+            )
+        stats = result.graph_intelligence["graph_statistics"]
+
+        summary = f"""
+        Domain
+        ------
+        {result.domain}
+
+        Overall Security Score
+        ----------------------
+        {result.summary["overall_score"]}/100
+
+        Attack Paths
+        ------------
+        {stats["attack_paths"]}
+
+        Critical Findings
+        -----------------
+        {result.summary["critical"]}
+
+        High Findings
+        -------------
+        {result.summary["high"]}
+
+        Average Attack Path Length
+        --------------------------
+        {stats["average_path_length"]}
+
+        Unique Entry Points
+        -------------------
+        {stats["unique_entry_points"]}
+
+        Unique Targets
+        --------------
+        {stats["unique_targets"]}
+
+        Graph Nodes
+        -----------
+        {stats["graph_nodes"]}
+
+        Graph Edges
+        -----------
+        {stats["graph_edges"]}
+        """
+
+        self.graph_summary.setText(summary.strip())

@@ -1,24 +1,24 @@
-from ui.banner import show_banner
-from ui.runner import pipeline
+from .ui.banner import show_banner
+from .ui.runner import pipeline
 
-from ui.dashboard.layout import render_dashboard
-from ui.dashboard.dashboard_data import DashboardData
+from .ui.dashboard.layout import render_dashboard
+from .ui.dashboard.dashboard_data import DashboardData
 
-from ad.ldap_collector import LDAPCollector
-from ad.relationship_builder import RelationshipBuilder
+from .ad.ldap_collector import LDAPCollector
+from .ad.relationship_builder import RelationshipBuilder
 
-from analysis.mitre_engine import generate_mitre_mapping
-from analysis.remediation_engine import generate_remediation_plan
-from analysis.attack_paths import find_attack_paths
-from analysis.path_prioritizer import prioritize_attack_paths
-from analysis.risk_engine import calculate_risk
-from analysis.attack_simulator import generate_attack_simulation
-from analysis.intelligence_engine import generate_graph_intelligence
-from analysis.findings import Finding
-from analysis.report_generator import generate_report
-from analysis.security_summary import generate_security_summary
+from .core.graph_builder import build_graph
 
-from visualization.graph_visualizer import visualize_graph
+from .analysis.mitre_engine import generate_mitre_mapping
+from .analysis.remediation_engine import generate_remediation_plan
+from .analysis.attack_paths import find_attack_paths
+from .analysis.path_prioritizer import prioritize_attack_paths
+from .analysis.risk_engine import calculate_risk
+from .analysis.attack_simulator import generate_attack_simulation
+from .analysis.intelligence_engine import generate_graph_intelligence
+from .analysis.findings import Finding
+from .analysis.report_generator import generate_report
+from .analysis.security_summary import generate_security_summary
 
 
 def main():
@@ -46,6 +46,7 @@ def main():
 
     graph = pipeline.run_stage(
         "Building Attack Graph",
+        build_graph,
         relationships
     )
 
@@ -90,10 +91,6 @@ def main():
 
         finding.simulation = generate_attack_simulation(path)
         finding.mitre = generate_mitre_mapping(path)
-
-        # ==========================================
-        # Attack Intelligence
-        # ==========================================
 
         finding.blast_radius = len(path)
 
@@ -141,18 +138,21 @@ def main():
             finding.privilege_concentration = "Low"
 
         if shared_nodes:
+
             finding.intelligence_summary = (
                 f"This attack path traverses {len(shared_nodes)} "
                 f"shared privilege node(s): {', '.join(shared_nodes)}. "
-                f"The path ultimately reaches "
-                f"{path[-1]}, making it a high-priority "
-                f"privilege escalation route."
+                f"The path ultimately reaches {path[-1]}, making it "
+                f"a high-priority privilege escalation route."
             )
+
         else:
+
             finding.intelligence_summary = (
                 f"This attack path reaches {path[-1]} "
                 f"without traversing shared privilege hubs."
             )
+
         findings.append(finding)
 
     summary = pipeline.run_stage(
@@ -174,9 +174,7 @@ def main():
         remediation_plan=remediation_plan,
     )
 
-    render_dashboard(
-        dashboard_data
-    )
+    render_dashboard(dashboard_data)
 
     pipeline.run_stage(
         "Generating Professional Report",

@@ -1,17 +1,15 @@
 from rich.columns import Columns
 from rich.text import Text
 
-from ui.console import console
+from ..console import console
 
-from ui.dashboard.widgets.remediation import build_remediation
-from ui.dashboard.widgets.overview import build_overview
-from ui.dashboard.widgets.security_posture import build_security_posture
-from ui.dashboard.widgets.attack_intelligence import build_attack_intelligence
-from ui.dashboard.widgets.attack_cards import build_attack_cards
-from ui.dashboard.widgets.recommendations import build_recommendations
-from ui.dashboard.widgets.assessment import build_assessment
-
-
+from .widgets.remediation import build_remediation
+from .widgets.overview import build_overview
+from .widgets.security_posture import build_security_posture
+from .widgets.attack_intelligence import build_attack_intelligence
+from .widgets.attack_cards import build_attack_cards
+from .widgets.recommendations import build_recommendations
+from .widgets.assessment import build_assessment
 def render_dashboard(data):
 
     console.print()

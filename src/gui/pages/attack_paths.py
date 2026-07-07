@@ -30,6 +30,7 @@ class AttackPathsPage(QWidget):
         super().__init__()
 
         self.build_ui()
+        self.findings = []
 
     def build_ui(self):
 
@@ -164,6 +165,9 @@ class AttackPathsPage(QWidget):
 
         root.addLayout(body)
 
+        self.table.itemSelectionChanged.connect(
+            self.update_details
+    )
     # ==========================================================
 
     def clear(self):
@@ -174,15 +178,16 @@ class AttackPathsPage(QWidget):
         self.table.setRowCount(0)
         self.details.clear()
 
+
     # ==========================================================
 
     def add_attack_path(
-        self,
-        severity: str,
-        risk: int,
-        source: str,
-        target: str,
-        length: int
+            self,
+            severity: str,
+            risk: int,
+            source: str,
+            target: str,
+            length: int,
     ):
         """
         Add one attack path.
@@ -192,11 +197,30 @@ class AttackPathsPage(QWidget):
 
         self.table.insertRow(row)
 
+        # -----------------------------
+        # Severity
+        # -----------------------------
+
+        severity_item = QTableWidgetItem(severity)
+
+        if severity == "Critical":
+            severity_item.setBackground(Qt.GlobalColor.darkRed)
+
+        elif severity == "High":
+            severity_item.setBackground(Qt.GlobalColor.darkYellow)
+
+        elif severity == "Medium":
+            severity_item.setBackground(Qt.GlobalColor.darkCyan)
+
         self.table.setItem(
             row,
             0,
-            QTableWidgetItem(severity)
+            severity_item,
         )
+
+        # -----------------------------
+        # Risk
+        # -----------------------------
 
         self.table.setItem(
             row,
@@ -204,11 +228,19 @@ class AttackPathsPage(QWidget):
             QTableWidgetItem(str(risk))
         )
 
+        # -----------------------------
+        # Source
+        # -----------------------------
+
         self.table.setItem(
             row,
             2,
             QTableWidgetItem(source)
         )
+
+        # -----------------------------
+        # Target
+        # -----------------------------
 
         self.table.setItem(
             row,
@@ -216,18 +248,78 @@ class AttackPathsPage(QWidget):
             QTableWidgetItem(target)
         )
 
+        # -----------------------------
+        # Length
+        # -----------------------------
+
         self.table.setItem(
             row,
             4,
             QTableWidgetItem(str(length))
         )
+    # ==========================================================
+
+    def load_result(self, result):
+        self.findings = result.findings
+
+        self.clear()
+
+        for finding in result.findings:
+            self.add_attack_path(
+                severity=finding.severity,
+                risk=finding.score,
+                source=finding.path[0],
+                target=finding.path[-1],
+                length=len(finding.path),
+            )
 
     # ==========================================================
 
-    def show_path_details(self, text: str):
-        """
-        Display detailed information
-        for the selected attack path.
-        """
+    def update_details(self):
 
-        self.details.setPlainText(text)
+        row = self.table.currentRow()
+
+        if row < 0:
+            return
+
+        finding = self.findings[row]
+
+        text = f"""
+    Finding ID : {finding.id}
+
+    Severity   : {finding.severity}
+
+    Risk Score : {finding.score}
+
+    Attack Path
+    -----------
+
+    {" -> ".join(finding.path)}
+
+    Attack Complexity
+    -----------------
+
+    {finding.attack_complexity}
+
+    Lateral Movement
+    ----------------
+
+    {finding.lateral_movement}
+
+    Privilege Concentration
+    -----------------------
+
+    {finding.privilege_concentration}
+
+    Blast Radius
+    ------------
+
+    {finding.blast_radius}
+
+    Intelligence
+    ------------
+
+    {finding.intelligence_summary}
+    """
+
+        self.details.setPlainText(text.strip())

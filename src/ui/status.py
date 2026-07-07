@@ -1,4 +1,4 @@
-from ui.console import console
+from .console import console
 
 
 def success(message: str):

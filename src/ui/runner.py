@@ -2,7 +2,7 @@ from time import perf_counter
 
 from rich.panel import Panel
 
-from ui.console import console
+from .console import console
 
 
 class PipelineRunner:
