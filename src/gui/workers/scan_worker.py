@@ -11,9 +11,24 @@ class ScanWorker(QObject):
     error = pyqtSignal(str)
     progress = pyqtSignal(str, int)
 
+    def __init__(self):
+        super().__init__()
+
+        self.cancel_requested = False
+
+    # =====================================================
+
+    def stop(self):
+        self.cancel_requested = True
+
+    # =====================================================
+
     def run(self):
 
         try:
+
+            if self.cancel_requested:
+                return
 
             engine = ShadowPathEngine(
                 server_ip="192.168.56.10",
@@ -23,7 +38,13 @@ class ScanWorker(QObject):
                 progress_callback=self.progress.emit,
             )
 
+            if self.cancel_requested:
+                return
+
             result = engine.run()
+
+            if self.cancel_requested:
+                return
 
             self.finished.emit(result)
 

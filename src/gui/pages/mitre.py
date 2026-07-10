@@ -5,6 +5,12 @@ Displays ATT&CK techniques identified during
 attack path analysis.
 """
 
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QAbstractItemView
+from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import QUrl
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget,
@@ -39,7 +45,7 @@ class MitrePage(QWidget):
         root = QVBoxLayout(self)
 
         root.setContentsMargins(24, 24, 24, 24)
-        root.setSpacing(20)
+        root.setSpacing(14)
 
         # =====================================================
         # Title
@@ -62,12 +68,34 @@ class MitrePage(QWidget):
         # =====================================================
 
         stats = QHBoxLayout()
-        stats.setSpacing(16)
+        stats.setSpacing(10)
 
-        stats.addWidget(self.metric_card("Techniques", "--"))
-        stats.addWidget(self.metric_card("Tactics", "--"))
-        stats.addWidget(self.metric_card("Critical", "--"))
-        stats.addWidget(self.metric_card("Coverage", "--"))
+        self.techniques_card = self.metric_card(
+            "Techniques",
+            "--",
+        )
+
+        self.tactics_card = self.metric_card(
+            "Tactics",
+            "--",
+        )
+
+        self.critical_card = self.metric_card(
+            "Critical",
+            "--",
+        )
+
+        self.coverage_card = self.metric_card(
+            "Coverage",
+            "--",
+        )
+
+        stats.addWidget(self.techniques_card)
+        stats.addWidget(self.tactics_card)
+        stats.addWidget(self.critical_card)
+        stats.addWidget(self.coverage_card)
+
+        root.addLayout(stats)
 
         root.addLayout(stats)
 
@@ -76,10 +104,10 @@ class MitrePage(QWidget):
         # =====================================================
 
         body = QHBoxLayout()
-        body.setSpacing(20)
+        body.setSpacing(14)
 
         # =====================================================
-        # Technique Table
+        # Table
         # =====================================================
 
         table_frame = QFrame()
@@ -109,17 +137,35 @@ class MitrePage(QWidget):
 
         self.table.verticalHeader().setVisible(False)
 
-        self.table.setAlternatingRowColors(True)
+        self.table.setAlternatingRowColors(False)
 
         self.table.setSelectionBehavior(
             QTableWidget.SelectionBehavior.SelectRows
         )
 
+        self.table.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )
+
+        self.table.setStyleSheet("""
+        QTableWidget{
+        background:#1F2937;
+        alternate-background-color:#1F2937;
+        gridline-color:#374151;
+        selection-background-color:#F3F4F6;
+        selection-color:#111827;
+        }
+        QTableWidget::item:selected{
+        background:#F3F4F6;
+        color:#111827;
+        }
+        """)
+
         self.table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
         )
 
-        self.table.setSortingEnabled(True)
+        self.table.setSortingEnabled(False)
 
         table_layout.addWidget(table_title)
         table_layout.addWidget(self.table)
@@ -127,7 +173,7 @@ class MitrePage(QWidget):
         body.addWidget(table_frame, 3)
 
         # =====================================================
-        # Details Panel
+        # Details
         # =====================================================
 
         detail_frame = QFrame()
@@ -159,14 +205,13 @@ class MitrePage(QWidget):
         detail_layout.addWidget(detail_title)
         detail_layout.addWidget(self.details)
         detail_layout.addWidget(self.reference_button)
+        self.reference_button.clicked.connect(
+            self.open_reference
+        )
 
         body.addWidget(detail_frame, 2)
 
         root.addLayout(body)
-
-        # =====================================================
-        # Signals
-        # =====================================================
 
         self.table.itemSelectionChanged.connect(
             self.update_details
@@ -178,32 +223,39 @@ class MitrePage(QWidget):
 
         frame = QFrame()
 
-        layout = QVBoxLayout(frame)
+        frame.setFixedHeight(90)
 
-        layout.setContentsMargins(16, 16, 16, 16)
+        layout = QHBoxLayout(frame)
+
+        layout.setContentsMargins(18, 14, 18, 14)
 
         heading = QLabel(title)
 
         heading.setStyleSheet("""
             QLabel{
                 color:#A1A1AA;
-                font-size:13px;
+                font-size:14px;
                 border:none;
             }
         """)
 
         number = QLabel(value)
 
+        frame.value_label = number
+
         number.setStyleSheet("""
             QLabel{
                 font-size:28px;
                 font-weight:700;
                 border:none;
+                color:white;
             }
         """)
 
         layout.addWidget(heading)
+
         layout.addStretch()
+
         layout.addWidget(number)
 
         return frame
@@ -214,15 +266,16 @@ class MitrePage(QWidget):
 
         self.table.setRowCount(0)
         self.details.clear()
+        self.mappings.clear()
 
     # =========================================================
 
     def add_mapping(
         self,
-        technique: str,
-        technique_id: str,
-        tactic: str,
-        severity: str,
+        technique,
+        technique_id,
+        tactic,
+        severity,
     ):
 
         row = self.table.rowCount()
@@ -232,31 +285,34 @@ class MitrePage(QWidget):
         self.table.setItem(
             row,
             0,
-            QTableWidgetItem(technique)
+            QTableWidgetItem(str(technique))
         )
 
         self.table.setItem(
             row,
             1,
-            QTableWidgetItem(technique_id)
+            QTableWidgetItem(str(technique_id))
         )
 
         self.table.setItem(
             row,
             2,
-            QTableWidgetItem(tactic)
+            QTableWidgetItem(str(tactic))
         )
 
-        severity_item = QTableWidgetItem(severity)
+        severity_item = QTableWidgetItem(str(severity))
 
         if severity == "Critical":
-            severity_item.setBackground(Qt.GlobalColor.darkRed)
+            severity_item.setForeground(QColor("white"))
+            severity_item.setBackground(QColor("#B91C1C"))
 
         elif severity == "High":
-            severity_item.setBackground(Qt.GlobalColor.darkYellow)
+            severity_item.setForeground(QColor("black"))
+            severity_item.setBackground(QColor("#FBBF24"))
 
         elif severity == "Medium":
-            severity_item.setBackground(Qt.GlobalColor.darkCyan)
+            severity_item.setForeground(QColor("white"))
+            severity_item.setBackground(QColor("#2563EB"))
 
         self.table.setItem(
             row,
@@ -266,32 +322,76 @@ class MitrePage(QWidget):
 
     # =========================================================
 
-    def show_details(self, text: str):
-
-        self.details.setPlainText(text)
-
-    # =========================================================
-
     def load_result(self, result):
 
         self.clear()
 
-        self.mappings = []
+        if result is None:
+            return
 
-        for finding in result.findings:
+        findings = getattr(result, "findings", [])
 
-            for technique in finding.mitre:
+        for finding in findings:
+
+            mitre = getattr(finding, "mitre", [])
+
+            if not mitre:
+                continue
+
+            for technique in mitre:
+
+                if isinstance(technique, dict):
+
+                    name = technique.get("name", "Unknown")
+
+                    technique_id = technique.get("id", "")
+
+                    tactic = technique.get("tactic", "")
+
+                else:
+
+                    name = getattr(technique, "name", "Unknown")
+
+                    technique_id = getattr(technique, "id", "")
+
+                    tactic = getattr(technique, "tactic", "")
 
                 self.add_mapping(
-                    technique["name"],
-                    technique["id"],
-                    technique["tactic"],
-                    finding.severity,
+                    name,
+                    technique_id,
+                    tactic,
+                    getattr(finding, "severity", ""),
                 )
 
                 self.mappings.append(
                     (technique, finding)
                 )
+
+        if self.table.rowCount() > 0:
+            self.table.clearSelection()
+
+            self.table.selectRow(0)
+
+            self.update_details()
+        techniques = self.table.rowCount()
+
+        tactics = len({
+            self.table.item(row, 2).text()
+            for row in range(self.table.rowCount())
+        })
+
+        critical = sum(
+            1
+            for row in range(self.table.rowCount())
+            if self.table.item(row, 3).text() == "Critical"
+        )
+
+        coverage = techniques * 5
+        coverage = min(coverage, 100)
+        self.techniques_card.value_label.setText(str(techniques))
+        self.tactics_card.value_label.setText(str(tactics))
+        self.critical_card.value_label.setText(str(critical))
+        self.coverage_card.value_label.setText(f"{coverage}%")
 
     # =========================================================
 
@@ -300,45 +400,82 @@ class MitrePage(QWidget):
         row = self.table.currentRow()
 
         if row < 0:
+            self.details.clear()
+            return
+
+        if row >= len(self.mappings):
+            self.details.clear()
             return
 
         technique, finding = self.mappings[row]
+
+        if isinstance(technique, dict):
+
+            name = technique.get("name", "Unknown")
+            tid = technique.get("id", "")
+            tactic = technique.get("tactic", "")
+
+        else:
+
+            name = getattr(technique, "name", "Unknown")
+            tid = getattr(technique, "id", "")
+            tactic = getattr(technique, "tactic", "")
+
+        path = getattr(finding, "path", [])
+        simulation = getattr(finding, "simulation", [])
 
         text = f"""
 Technique
 ---------
 
-{technique["name"]}
+{name}
 
 Technique ID
 ------------
 
-{technique["id"]}
+{tid}
 
 Tactic
 ------
 
-{technique["tactic"]}
+{tactic}
 
 Severity
 --------
 
-{finding.severity}
+{getattr(finding, "severity", "")}
 
 Risk Score
 ----------
 
-{finding.score}
+{getattr(finding, "score", "")}
 
 Attack Path
 -----------
 
-{" -> ".join(finding.path)}
+{" -> ".join(path)}
 
 Attack Simulation
 -----------------
 
-{chr(10).join(finding.simulation)}
+{chr(10).join(simulation)}
 """
 
         self.details.setPlainText(text.strip())
+
+# =========================================================
+
+    def open_reference(self):
+
+        row = self.table.currentRow()
+
+        if row < 0:
+            return
+
+        technique_id = self.table.item(row, 1).text()
+
+        QDesktopServices.openUrl(
+            QUrl(
+                f"https://attack.mitre.org/techniques/{technique_id}/"
+            )
+        )

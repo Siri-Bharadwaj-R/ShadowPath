@@ -1,12 +1,6 @@
 """
 ShadowPath Main Window
 """
-def start_scan(self):
-
-    print("START SCAN CLICKED")
-
-    self.scan.clear_log()
-
 from PyQt6.QtCore import QThread
 from PyQt6.QtWidgets import (
     QMainWindow,
@@ -20,6 +14,7 @@ from .widgets.sidebar import Sidebar
 from .widgets.topbar import TopBar
 from .widgets.statusbar import StatusBar
 
+from PyQt6.QtWidgets import QMessageBox
 from .pages.dashboard import DashboardPage
 from .pages.scan import ScanPage
 from .pages.attack_paths import AttackPathsPage
@@ -109,8 +104,52 @@ class MainWindow(QMainWindow):
         self.scan.scan_requested.connect(
             self.start_scan
         )
+        self.scan.stop_button.clicked.connect(
+            self.stop_scan
+        )
+
+        # -----------------------------
+        # TopBar Buttons
+        # -----------------------------
+
+        self.topbar.scan_button.clicked.connect(
+            lambda: self.change_page("Scan")
+        )
+
+        self.topbar.scan_button.clicked.connect(
+            self.start_scan
+        )
+
+        self.topbar.report_button.clicked.connect(
+            self.reports.generate_latest_report
+        )
+
+        self.topbar.help_button.clicked.connect(
+            self.show_help
+        )
 
     # =====================================================
+
+    def show_help(self):
+        QMessageBox.about(
+            self,
+            "About ShadowPath",
+            """
+    ShadowPath v1.0
+
+    Active Directory Attack Path Analysis Platform
+
+    Features
+
+    • Attack Path Discovery
+    • MITRE ATT&CK Mapping
+    • Risk Scoring
+    • Interactive Graph
+    • Executive PDF Reports
+
+    Developed using Python + PyQt6
+            """.strip(),
+        )
 
     def change_page(self, page: str):
 
@@ -202,26 +241,46 @@ class MainWindow(QMainWindow):
     # =====================================================
 
     def scan_finished(self, result):
+        # -----------------------------
+        # Scan Page
+        # -----------------------------
+
         self.scan.update_results(result)
 
-        self.dashboard.set_security_score(
-            result.summary["overall_score"]
-        )
+        # -----------------------------
+        # Dashboard
+        # -----------------------------
 
-        self.dashboard.total_users.set_value(result.users)
-        self.dashboard.total_groups.set_value(result.groups)
-        self.dashboard.attack_paths.set_value(len(result.attack_paths))
-        self.dashboard.risk_level.set_value(result.summary["overall_score"])
+        self.dashboard.load_result(result)
 
-        print("Dashboard OK")
+        # -----------------------------
+        # Attack Paths
+        # -----------------------------
+
+        self.attack_paths.load_result(result)
+
+        # -----------------------------
+        # MITRE
+        # -----------------------------
+
+        self.mitre.load_result(result)
+
+        # -----------------------------
+        # Reports
+        # -----------------------------
+
+        if hasattr(self.reports, "load_result"):
+            self.reports.load_result(result)
 
         self.scan.start_button.setEnabled(True)
-
-        print("Everything finished")
 
         self.status.showMessage(
             "Scan completed successfully."
         )
+
+        print("Dashboard updated")
+        print("Attack Paths updated")
+        print("MITRE updated")
     # =====================================================
 
     def scan_failed(self, message):
@@ -234,3 +293,20 @@ class MainWindow(QMainWindow):
         self.status.showMessage(
             "Scan failed."
         )
+
+    # =====================================================
+
+    def stop_scan(self):
+
+        if self.worker:
+            self.worker.stop()
+
+            self.scan.append_log(
+                "Scan cancelled."
+            )
+
+            self.scan.start_button.setEnabled(True)
+
+            self.status.showMessage(
+                "Scan cancelled."
+            )

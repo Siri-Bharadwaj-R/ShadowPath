@@ -333,5 +333,3 @@ class DashboardPage(QWidget):
         -----------
         {stats["graph_edges"]}
         """
-
-        self.graph_summary.setText(summary.strip())

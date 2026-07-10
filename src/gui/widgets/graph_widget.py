@@ -3,7 +3,12 @@ ShadowPath Graph Widget
 """
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QBrush, QColor, QPen
+from PyQt6.QtGui import (
+    QBrush,
+    QColor,
+    QPen,
+    QPainter,
+)
 from PyQt6.QtWidgets import (
     QGraphicsEllipseItem,
     QGraphicsLineItem,
@@ -21,9 +26,12 @@ class GraphWidget(QGraphicsView):
         self.scene = QGraphicsScene()
 
         self.setScene(self.scene)
+        self.setBackgroundBrush(
+            QColor("#111827")
+        )
 
         self.setRenderHint(
-            self.renderHints()
+            QPainter.RenderHint.Antialiasing
         )
 
         self.setDragMode(
@@ -64,29 +72,66 @@ class GraphWidget(QGraphicsView):
             circle = QGraphicsEllipseItem(
                 px,
                 py,
-                40,
-                40,
+                45,
+                45,
             )
 
+            # -------------------------------------------------
+            # Node Color
+            # -------------------------------------------------
+
+            node_lower = node.lower()
+
+            if "domain admin" in node_lower or "domainadmins" in node_lower:
+                color = QColor("#DC2626")  # Critical Red
+
+            elif "admin" in node_lower:
+                color = QColor("#EA580C")  # Orange
+
+            elif "group" in node_lower:
+                color = QColor("#7C3AED")  # Purple
+
+            elif "user" in node_lower:
+                color = QColor("#2563EB")  # Blue
+
+            else:
+                color = QColor("#06B6D4")  # Cyan
+
             circle.setBrush(
-                QBrush(QColor("#3B82F6"))
+                QBrush(color)
             )
 
             circle.setPen(
-                QPen(Qt.GlobalColor.white)
+                QPen(
+                    QColor("#E5E7EB"),
+                    2,
+                )
             )
 
             self.scene.addItem(circle)
 
-            label = QGraphicsTextItem(node)
+            # ---------------- Label ----------------
+
+            display_name = node
+
+            # Shorten long Active Directory group names
+            if len(display_name) > 18:
+                display_name = display_name[:15] + "..."
+
+            label = QGraphicsTextItem(display_name)
 
             label.setDefaultTextColor(
-                Qt.GlobalColor.white
+                QColor("#D1D5DB")
             )
 
+            font = label.font()
+            font.setPointSize(10)
+            font.setBold(True)
+            label.setFont(font)
+
             label.setPos(
-                px,
-                py + 45,
+                px - 5,
+                py + 55,
             )
 
             self.scene.addItem(label)
@@ -107,9 +152,21 @@ class GraphWidget(QGraphicsView):
 
             line.setPen(
                 QPen(
-                    QColor("#6B7280"),
-                    2,
+                    QColor("#4B5563"),
+                    3,
                 )
             )
 
             self.scene.addItem(line)
+
+# =====================================================
+
+    def wheelEvent(self, event):
+
+        if event.angleDelta().y() > 0:
+
+            self.scale(1.15, 1.15)
+
+        else:
+
+            self.scale(0.85, 0.85)

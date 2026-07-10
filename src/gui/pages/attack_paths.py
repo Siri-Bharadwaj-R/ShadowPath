@@ -4,6 +4,14 @@ ShadowPath Attack Paths Page
 Displays discovered attack paths with filtering,
 searching and detailed path inspection.
 """
+
+import csv
+from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtWidgets import QAbstractItemView
+from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QAbstractItemView
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget,
@@ -63,6 +71,9 @@ class AttackPathsPage(QWidget):
         self.search_box.setPlaceholderText(
             "Search users, groups, computers..."
         )
+        self.search_box.textChanged.connect(
+            self.filter_table
+        )
 
         self.severity_filter = QComboBox()
         self.severity_filter.addItems([
@@ -72,8 +83,14 @@ class AttackPathsPage(QWidget):
             "Medium",
             "Low"
         ])
+        self.severity_filter.currentTextChanged.connect(
+            self.filter_table
+        )
 
         self.export_button = QPushButton("Export")
+        self.export_button.clicked.connect(
+            self.export_attack_paths
+        )
 
         toolbar.addWidget(self.search_box, 1)
         toolbar.addWidget(self.severity_filter)
@@ -108,6 +125,10 @@ class AttackPathsPage(QWidget):
             "Length"
         ])
 
+        self.table.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )
+
         self.table.setSelectionBehavior(
             QTableWidget.SelectionBehavior.SelectRows
         )
@@ -116,7 +137,19 @@ class AttackPathsPage(QWidget):
             QTableWidget.SelectionMode.SingleSelection
         )
 
-        self.table.setAlternatingRowColors(True)
+        self.table.setAlternatingRowColors(False)
+        self.table.setStyleSheet("""
+        QTableWidget{
+            background:#1F2937;
+            alternate-background-color:#1F2937;
+            gridline-color:#374151;
+        }
+
+        QTableWidget::item:selected{
+            background:#2563EB;
+            color:white;
+        }
+        """)
 
         self.table.verticalHeader().setVisible(False)
 
@@ -204,13 +237,16 @@ class AttackPathsPage(QWidget):
         severity_item = QTableWidgetItem(severity)
 
         if severity == "Critical":
-            severity_item.setBackground(Qt.GlobalColor.darkRed)
+            severity_item.setBackground(QColor("#DC2626"))
 
         elif severity == "High":
-            severity_item.setBackground(Qt.GlobalColor.darkYellow)
+            severity_item.setBackground(QColor("#EA580C"))
 
         elif severity == "Medium":
-            severity_item.setBackground(Qt.GlobalColor.darkCyan)
+            severity_item.setBackground(QColor("#2563EB"))
+
+        elif severity == "Low":
+            severity_item.setBackground(QColor("#10B981"))
 
         self.table.setItem(
             row,
@@ -323,3 +359,77 @@ class AttackPathsPage(QWidget):
     """
 
         self.details.setPlainText(text.strip())
+
+# ==========================================================
+
+    def filter_table(self):
+
+        text = self.search_box.text().lower()
+
+        severity = self.severity_filter.currentText()
+
+        for row in range(self.table.rowCount()):
+
+            visible = True
+
+            if text:
+
+                found = False
+
+                for column in range(self.table.columnCount()):
+
+                    item = self.table.item(row, column)
+
+                    if item and text in item.text().lower():
+                        found = True
+                        break
+
+                visible = found
+
+            if severity != "All Severities":
+
+                severity_item = self.table.item(row, 0)
+
+                if severity_item and severity_item.text() != severity:
+                    visible = False
+
+            self.table.setRowHidden(row, not visible)
+
+# ==========================================================
+
+    def export_attack_paths(self):
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Attack Paths",
+            "attack_paths.csv",
+            "CSV Files (*.csv)"
+        )
+
+        if not filename:
+            return
+
+        with open(filename, "w", newline="", encoding="utf-8") as file:
+
+            writer = csv.writer(file)
+
+            writer.writerow([
+                "Severity",
+                "Risk",
+                "Source",
+                "Target",
+                "Length"
+            ])
+
+            for row in range(self.table.rowCount()):
+
+                if self.table.isRowHidden(row):
+                    continue
+
+                writer.writerow([
+                    self.table.item(row, 0).text(),
+                    self.table.item(row, 1).text(),
+                    self.table.item(row, 2).text(),
+                    self.table.item(row, 3).text(),
+                    self.table.item(row, 4).text(),
+                ])
