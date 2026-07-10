@@ -93,6 +93,31 @@ class ScanPage(QWidget):
         self.stop_button.setMinimumHeight(46)
 
         self.stop_button.setEnabled(False)
+        button_style = """
+        QPushButton{
+            background:#1F2937;
+            color:white;
+            border:1px solid #374151;
+            border-radius:8px;
+            font-weight:600;
+        }
+
+        QPushButton:hover{
+            background:#2563EB;
+        }
+
+        QPushButton:pressed{
+            background:#1D4ED8;
+        }
+
+        QPushButton:disabled{
+            background:#374151;
+            color:#9CA3AF;
+        }
+        """
+
+        self.start_button.setStyleSheet(button_style)
+        self.stop_button.setStyleSheet(button_style)
 
         action_layout.addWidget(self.start_button)
         action_layout.addWidget(self.stop_button)

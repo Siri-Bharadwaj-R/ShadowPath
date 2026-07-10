@@ -186,6 +186,7 @@ class MainWindow(QMainWindow):
         )
 
         self.scan.start_button.setEnabled(False)
+        self.scan.stop_button.setEnabled(True)
 
         self.thread = QThread()
 
@@ -246,6 +247,7 @@ class MainWindow(QMainWindow):
         # -----------------------------
 
         self.scan.update_results(result)
+        self.scan.stop_button.setEnabled(False)
 
         # -----------------------------
         # Dashboard
@@ -297,7 +299,7 @@ class MainWindow(QMainWindow):
     # =====================================================
 
     def stop_scan(self):
-
+        self.scan.stop_button.setEnabled(False)
         if self.worker:
             self.worker.stop()
 

@@ -467,15 +467,6 @@ Attack Simulation
 
     def open_reference(self):
 
-        row = self.table.currentRow()
-
-        if row < 0:
-            return
-
-        technique_id = self.table.item(row, 1).text()
-
         QDesktopServices.openUrl(
-            QUrl(
-                f"https://attack.mitre.org/techniques/{technique_id}/"
-            )
-        )
+            QUrl("https://attack.mitre.org/matrices/enterprise/")
+    )
