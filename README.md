@@ -197,7 +197,7 @@ ShadowPath can be launched in either graphical or command-line mode.
 ### 🖥️ Desktop GUI
 
 ```bash
-python -m src.main
+python -m src.gui.app
 ```
 
 ### 💻 Command-Line Interface (CLI)
