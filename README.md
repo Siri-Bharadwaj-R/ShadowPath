@@ -25,7 +25,13 @@ Built with **Python** and **PyQt6**, ShadowPath supports both an interactive des
 
 ## Screenshots
 
-> Screenshots will be added soon.
+### Executive Dashboard
+
+<img width="1903" height="1068" alt="image" src="https://github.com/user-attachments/assets/f2c6439d-ce24-457b-95b4-b182b8b59549" />
+
+### MITRE ATT&CK Mapping
+
+<img width="1900" height="1067" alt="image" src="https://github.com/user-attachments/assets/c04054bc-a62e-4a19-8d5f-5e0fcd1e7d08" />
 
 ---
 
